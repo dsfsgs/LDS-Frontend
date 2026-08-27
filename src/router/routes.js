@@ -66,6 +66,37 @@ const routes = [
         component: () => import("pages/LibraryPage.vue"),
         meta: { requiresAuth: true },
       },
+        {
+        path: "title",
+        name: "title",
+        component: () => import("pages/library/event/TitlePage.vue"),
+        meta: { requiresAuth: true },
+      },
+          {
+        path: "mode",
+        name: "mode",
+        component: () => import("pages/library/event/ModePage.vue"),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: "venue",
+        name: "venue",
+        component: () => import("pages/library/event/VenuePage.vue"),
+        meta: { requiresAuth: true },
+      },
+        {
+        path: "category",
+        name: "category",
+        component: () => import("pages/library/event/CategoryPage.vue"),
+        meta: { requiresAuth: true },
+      },
+
+        {
+        path: "speaker",
+        name: "speaker",
+        component: () => import("pages/library/event/SpeakerPage.vue"),
+        meta: { requiresAuth: true },
+      },
       {
         path: "reports",
         name: "reports",

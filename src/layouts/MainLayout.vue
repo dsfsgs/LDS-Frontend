@@ -6,14 +6,7 @@
     <q-header class="app-header">
       <q-toolbar class="app-toolbar">
         <!-- Menu -->
-        <q-btn
-          flat
-          round
-          dense
-          icon="menu"
-          class="menu-btn"
-          @click="toggleLeftDrawer"
-        />
+        <q-btn flat round dense icon="menu" class="menu-btn" @click="toggleLeftDrawer" />
 
         <!-- Office Name - Full display without ellipsis -->
         <div class="header-office">
@@ -63,25 +56,13 @@
     <!-- =====================================================
          SIDEBAR
     ====================================================== -->
-    <q-drawer
-      v-model="leftDrawerOpen"
-      :width="260"
-      :breakpoint="900"
-      show-if-above
-      bordered
-      class="app-drawer"
-    >
+    <q-drawer v-model="leftDrawerOpen" :width="260" :breakpoint="900" show-if-above bordered class="app-drawer">
       <div class="drawer-wrapper">
         <!-- =================================================
              BRAND
         ================================================== -->
         <div class="sidebar-brand">
-          <img
-            src="/image/LD.png"
-            alt="L&D Logo"
-            class="sidebar-logo"
-            loading="lazy"
-          />
+          <img src="/image/LD.png" alt="L&D Logo" class="sidebar-logo" loading="lazy" />
 
           <div class="sidebar-brand-text">
             <div class="sidebar-title">Learning & Development</div>
@@ -97,14 +78,8 @@
             <!-- Overview -->
             <div class="nav-section">OVERVIEW</div>
 
-            <q-item
-              clickable
-              v-ripple
-              :to="{ name: 'dashboard' }"
-              exact
-              class="nav-item"
-              active-class="nav-item-active"
-            >
+            <q-item clickable v-ripple :to="{ name: 'dashboard' }" exact class="nav-item"
+              active-class="nav-item-active">
               <q-item-section avatar>
                 <q-icon name="dashboard" />
               </q-item-section>
@@ -115,13 +90,7 @@
             <!-- Learning -->
             <div class="nav-section">LEARNING</div>
 
-            <q-item
-              clickable
-              v-ripple
-              :to="{ name: 'events' }"
-              class="nav-item"
-              active-class="nav-item-active"
-            >
+            <q-item clickable v-ripple :to="{ name: 'events' }" class="nav-item" active-class="nav-item-active">
               <q-item-section avatar>
                 <q-icon name="event" />
               </q-item-section>
@@ -129,13 +98,7 @@
               <q-item-section> Events </q-item-section>
             </q-item>
 
-            <q-item
-              clickable
-              v-ripple
-              :to="{ name: 'bpm' }"
-              class="nav-item"
-              active-class="nav-item-active"
-            >
+            <q-item clickable v-ripple :to="{ name: 'bpm' }" class="nav-item" active-class="nav-item-active">
               <q-item-section avatar>
                 <q-icon name="account_tree" />
               </q-item-section>
@@ -143,13 +106,7 @@
               <q-item-section> BPM </q-item-section>
             </q-item>
 
-            <q-item
-              clickable
-              v-ripple
-              :to="{ name: 'assessment' }"
-              class="nav-item"
-              active-class="nav-item-active"
-            >
+            <q-item clickable v-ripple :to="{ name: 'assessment' }" class="nav-item" active-class="nav-item-active">
               <q-item-section avatar>
                 <q-icon name="assignment" />
               </q-item-section>
@@ -157,13 +114,7 @@
               <q-item-section> Assessment </q-item-section>
             </q-item>
 
-            <q-item
-              clickable
-              v-ripple
-              :to="{ name: 'certification' }"
-              class="nav-item"
-              active-class="nav-item-active"
-            >
+            <q-item clickable v-ripple :to="{ name: 'certification' }" class="nav-item" active-class="nav-item-active">
               <q-item-section avatar>
                 <q-icon name="workspace_premium" />
               </q-item-section>
@@ -174,13 +125,7 @@
             <!-- Management -->
             <div class="nav-section">MANAGEMENT</div>
 
-            <q-item
-              clickable
-              v-ripple
-              :to="{ name: 'reports' }"
-              class="nav-item"
-              active-class="nav-item-active"
-            >
+            <q-item clickable v-ripple :to="{ name: 'reports' }" class="nav-item" active-class="nav-item-active">
               <q-item-section avatar>
                 <q-icon name="bar_chart" />
               </q-item-section>
@@ -188,7 +133,7 @@
               <q-item-section> Reports </q-item-section>
             </q-item>
 
-            <q-item
+            <!-- <q-item
               clickable
               v-ripple
               :to="{ name: 'library' }"
@@ -200,15 +145,67 @@
               </q-item-section>
 
               <q-item-section> Library </q-item-section>
-            </q-item>
+            </q-item> -->
+            <q-expansion-item v-model="libraryExpanded" dense-toggle class="nav-expansion"
+              header-class="nav-item nav-expansion-header" expand-icon-class="nav-expansion-icon">
+              <template #header>
+                <q-item-section avatar>
+                  <q-icon name="library_books" />
+                </q-item-section>
 
-            <q-item
-              clickable
-              v-ripple
-              :to="{ name: 'users' }"
-              class="nav-item"
-              active-class="nav-item-active"
-            >
+                <q-item-section> Library </q-item-section>
+              </template>
+
+              <q-item clickable v-ripple :to="{ name: 'title' }" class="nav-item nav-subitem"
+                active-class="nav-item-active">
+                <q-item-section avatar>
+                  <q-icon name="title" />
+                </q-item-section>
+
+                <q-item-section> Title </q-item-section>
+              </q-item>
+
+              <q-item clickable v-ripple :to="{ name: 'mode' }" class="nav-item nav-subitem"
+                active-class="nav-item-active">
+                <q-item-section avatar>
+                  <q-icon name="tune" />
+                </q-item-section>
+
+                <q-item-section> Mode </q-item-section>
+              </q-item>
+
+              <q-item clickable v-ripple :to="{ name: 'venue' }" class="nav-item nav-subitem"
+                active-class="nav-item-active">
+                <q-item-section avatar>
+                  <q-icon name="place" />
+                </q-item-section>
+
+                <q-item-section> Venue </q-item-section>
+              </q-item>
+
+              <q-item clickable v-ripple :to="{ name: 'category' }" class="nav-item nav-subitem"
+                active-class="nav-item-active">
+                <q-item-section avatar>
+                  <q-icon name="category" />
+                </q-item-section>
+
+                <q-item-section> Category </q-item-section>
+              </q-item>
+
+              
+              <q-item clickable v-ripple :to="{ name: 'speaker' }" class="nav-item nav-subitem"
+                active-class="nav-item-active">
+                <q-item-section avatar>
+                  <q-icon name="person" />
+                </q-item-section>
+                <q-item-section> Speaker </q-item-section>
+              </q-item>
+            </q-expansion-item>
+
+            
+
+
+            <q-item clickable v-ripple :to="{ name: 'users' }" class="nav-item" active-class="nav-item-active">
               <q-item-section avatar>
                 <q-icon name="manage_accounts" />
               </q-item-section>
@@ -223,13 +220,7 @@
         ================================================== -->
         <div class="sidebar-footer">
           <!-- Sign Out -->
-          <q-btn
-            flat
-            no-caps
-            align="left"
-            class="sidebar-signout"
-            @click="logout"
-          >
+          <q-btn flat no-caps align="left" class="sidebar-signout" @click="logout">
             <q-icon name="logout" size="21px" />
 
             <span> Sign Out </span>
@@ -261,7 +252,7 @@ export default defineComponent({
   setup() {
     const router = useRouter();
     const authStore = useAuthStore();
-
+    const libraryExpanded = ref(false);
     const leftDrawerOpen = ref(false);
 
     // Pulled live from the auth store
@@ -316,7 +307,7 @@ export default defineComponent({
       officeName,
 
       notificationCount,
-
+      libraryExpanded,
       toggleLeftDrawer,
 
       goToProfile,
@@ -676,5 +667,25 @@ export default defineComponent({
     height: 28px;
     font-size: 12px;
   }
+}
+
+.nav-expansion {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.nav-expansion-header {
+  min-height: 40px;
+  padding: 0 10px;
+  border-radius: 10px;
+}
+
+.nav-expansion :deep(.q-item__section--avatar) {
+  min-width: 40px;
+  color: #668087;
+}
+
+.nav-subitem {
+  padding-left: 20px;
 }
 </style>
