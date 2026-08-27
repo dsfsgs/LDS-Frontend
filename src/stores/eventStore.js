@@ -1,0 +1,163 @@
+import { defineStore } from "pinia";
+import { api } from "boot/axios";
+
+export const useEventStore = defineStore("event", {
+  state: () => ({
+    events: [],
+    selectedEvent: null,
+    loading: false,
+    error: null,
+  }),
+
+  actions: {
+    async fetchEvents() {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const response = await api.get("/event/index");
+
+        if (response.data.success) {
+          this.events = response.data.data;
+        } else {
+          this.error = response.data.message;
+        }
+      } catch (err) {
+        this.error = "Failed to fetch events";
+        console.error("Error fetching events:", err);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async createEvent(eventData) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const response = await api.post("/event/store", eventData);
+        if (response.data.success) {
+          await this.fetchEvents();
+          return { success: true, message: response.data.message };
+        } else {
+          this.error = response.data.message;
+          return { success: false, message: response.data.message };
+        }
+      } catch (err) {
+        const message = err.response?.data?.message || "Failed to create event";
+        this.error = message;
+        return { success: false, message };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async updateEvent(eventId, eventData) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const response = await api.put(`/event/update/${eventId}`, eventData);
+        if (response.data.success) {
+          await this.fetchEvents();
+          return {
+            success: true,
+            message: response.data.message || "Event updated successfully",
+          };
+        } else {
+          this.error = response.data.message;
+          return { success: false, message: response.data.message };
+        }
+      } catch (err) {
+        const message = err.response?.data?.message || "Failed to update event";
+        this.error = message;
+        return { success: false, message };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async deleteEvent(eventId) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const response = await api.delete(`/event/delete/${eventId}`);
+        if (response.data.success) {
+          this.events = this.events.filter(
+            (event) => event.event_id !== eventId
+          );
+          return { success: true, message: response.data.message };
+        } else {
+          this.error = response.data.message;
+          return { success: false, message: response.data.message };
+        }
+      } catch (err) {
+        const message = err.response?.data?.message || "Failed to delete event";
+        this.error = message;
+        return { success: false, message };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchEventById(eventId) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const response = await api.get(`/event/view/${eventId}`);
+        if (response.data.success) {
+          this.selectedEvent = response.data.data;
+          return { success: true, data: response.data.data };
+        } else {
+          this.error = response.data.message;
+          return { success: false, message: response.data.message };
+        }
+      } catch (err) {
+        const message = err.response?.data?.message || "Failed to fetch event";
+        this.error = message;
+        return { success: false, message };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async addSchedule(eventId, scheduleData) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const response = await api.post("/event/schedule/store", {
+          event_id: eventId,
+          ...scheduleData,
+        });
+
+        if (response.data.success) {
+          await this.fetchEventById(eventId);
+          return {
+            success: true,
+            message: response.data.message || "Schedule added successfully",
+          };
+        } else {
+          this.error = response.data.message;
+          return { success: false, message: response.data.message };
+        }
+      } catch (err) {
+        const message = err.response?.data?.message || "Failed to add schedule";
+        this.error = message;
+        return { success: false, message };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    clearError() {
+      this.error = null;
+    },
+
+    clearSelectedEvent() {
+      this.selectedEvent = null;
+    },
+  },
+});

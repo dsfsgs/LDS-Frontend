@@ -1,0 +1,114 @@
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import { api } from "boot/axios";
+
+export const useUserStore = defineStore("user", () => {
+  // ---------------------------------------------------------------------
+  // State
+  // ---------------------------------------------------------------------
+  const users = ref([]);
+  const isLoading = ref(false);
+  const error = ref(null);
+
+  // ---------------------------------------------------------------------
+  // Actions
+  // ---------------------------------------------------------------------
+  async function fetchUsers() {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      const { data } = await api.get("/user/index");
+      users.value = data.success ? data.data : [];
+      return { success: data.success, message: data.message };
+    } catch (err) {
+      error.value = err.response?.data?.message || "Unable to load users.";
+      return { success: false, message: error.value };
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function createUser(payload) {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      const { data } = await api.post("/user/register", payload);
+
+      if (!data.success) {
+        error.value = data.message || "Failed to create user.";
+        return { success: false, message: error.value };
+      }
+
+      await fetchUsers();
+      return { success: true, message: data.message };
+    } catch (err) {
+      error.value = err.response?.data?.message || "Failed to create user.";
+      return { success: false, message: error.value };
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function updateUser(userId, payload) {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      const { data } = await api.put(`/user/edit/${userId}`, payload);
+
+      if (!data.success) {
+        error.value = data.message || "Failed to update user.";
+        return { success: false, message: error.value };
+      }
+
+      await fetchUsers();
+      return { success: true, message: data.message };
+    } catch (err) {
+      error.value = err.response?.data?.message || "Failed to update user.";
+      return { success: false, message: error.value };
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function deleteUser(userId) {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      const { data } = await api.delete(`/user/delete/${userId}`);
+
+      if (!data.success) {
+        error.value = data.message || "Failed to delete user.";
+        return { success: false, message: error.value };
+      }
+
+      users.value = users.value.filter((user) => user.id !== userId);
+      return { success: true, message: data.message };
+    } catch (err) {
+      error.value = err.response?.data?.message || "Failed to delete user.";
+      return { success: false, message: error.value };
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  function clearError() {
+    error.value = null;
+  }
+
+  return {
+    // state
+    users,
+    isLoading,
+    error,
+    // actions
+    fetchUsers,
+    createUser,
+    updateUser,
+    deleteUser,
+    clearError,
+  };
+});

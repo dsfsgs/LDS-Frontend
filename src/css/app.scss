@@ -1,0 +1,36 @@
+// app global css in SCSS form
+// Base font size calculation based on viewport width
+
+:root {
+  --base-font-size: calc(14px + (16 - 14) * ((100vw - 300px) / (1920 - 300)));
+}
+
+html {
+  font-size: var(--base-font-size);
+  font-size: 12px; /* Adjust as needed */
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+}
+
+// Custom scrollbar styles
+body {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #00b034;
+    border-radius: 10px;
+
+    &:hover {
+      background: green;
+    }
+  }
+}
