@@ -2,7 +2,7 @@ import { api } from "src/boot/axios";
 
 // GET all titles
 export const title_name = () => {
-  return api.get(`title/index`);
+  return api.get(`title`);
 };
 
 // CREATE title

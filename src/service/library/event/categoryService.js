@@ -2,7 +2,7 @@ import { api } from "src/boot/axios";
 
 // GET all categorys
 export const category_name = () => {
-  return api.get(`category/index`);
+  return api.get(`category`);
 };
 
 // CREATE category

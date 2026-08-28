@@ -2,7 +2,7 @@ import { api } from "src/boot/axios";
 
 // GET all venues
 export const venue_name = () => {
-  return api.get(`venue/index`);
+  return api.get(`venue`);
 };
 
 // CREATE venue
