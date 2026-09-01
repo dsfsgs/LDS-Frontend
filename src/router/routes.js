@@ -27,13 +27,13 @@ const routes = [
       {
         path: "events",
         name: "events",
-        component: () => import("pages/EventsPage.vue"),
+        component: () => import("pages/event/EventListPage.vue"),
         meta: { requiresAuth: true },
       },
       {
         path: "create-events",
         name: "create events",
-        component: () => import("pages/CreateEventPage.vue"),
+        component: () => import("pages/event/EventCreatePage.vue"),
         meta: { requiresAuth: true },
       },
       {
@@ -88,6 +88,12 @@ const routes = [
         path: "category",
         name: "category",
         component: () => import("pages/library/event/CategoryPage.vue"),
+        meta: { requiresAuth: true },
+      },
+             {
+        path: "type",
+        name: "type",
+        component: () => import("pages/library/event/TypePage.vue"),
         meta: { requiresAuth: true },
       },
 
