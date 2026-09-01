@@ -1,8 +1,10 @@
 import { api } from "src/boot/axios";
 
 // GET all modes
-export const mode_name = () => {
-  return api.get(`mode`);
+export const mode_name = (search = '') => {
+  return api.get(`mode`,{
+    params: { search } ,
+  });
 };
 
 // CREATE mode

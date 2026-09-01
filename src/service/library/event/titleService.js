@@ -1,10 +1,11 @@
 import { api } from "src/boot/axios";
 
 // GET all titles
-export const title_name = () => {
-  return api.get(`title`);
+export const title_name = (search = "") => {
+  return api.get("title", {
+    params: { search },
+  });
 };
-
 // CREATE title
 export const create_title = (payload) => {
   return api.post(`title/store`, payload);
@@ -19,3 +20,4 @@ export const update_title = (titleId, payload) => {
 export const delete_title = (titleId) => {
   return api.delete(`title/delete/${titleId}`);
 };
+
