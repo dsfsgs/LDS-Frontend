@@ -191,6 +191,16 @@
 
                 <q-item-section> Category </q-item-section>
               </q-item>
+              
+              <q-item clickable v-ripple :to="{ name: 'type' }" class="nav-item nav-subitem"
+                active-class="nav-item-active">
+                <q-item-section avatar>
+                  <q-icon name="event_note" />
+                </q-item-section>
+
+                <q-item-section> Type </q-item-section>
+              </q-item>
+
 
               
               <q-item clickable v-ripple :to="{ name: 'speaker' }" class="nav-item nav-subitem"
