@@ -22,12 +22,12 @@ export const useTitleStore = defineStore("title", () => {
     error.value = null;
   }
 
-  async function fetchTitles() {
+  async function fetchTitles(search = "") {
     loading.value = true;
     error.value = null;
 
     try {
-      const response = await title_name();
+      const response = await title_name(search);
 
       console.log("fetchTitles response:", response.data);
 

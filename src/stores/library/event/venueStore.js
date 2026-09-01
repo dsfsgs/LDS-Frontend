@@ -22,12 +22,12 @@ export const useVenueStore = defineStore("venue", () => {
     error.value = null;
   }
 
-  async function fetchVenues() {
+  async function fetchVenues(search = "") {
     loading.value = true;
     error.value = null;
 
     try {
-      const response = await venue_name();
+      const response = await venue_name(search);
 
       console.log("fetchVenues response:", response.data);
 

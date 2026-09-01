@@ -22,12 +22,12 @@ export const useModeStore = defineStore("mode", () => {
     error.value = null;
   }
 
-  async function fetchModes() {
+  async function fetchModes(search = "") {
     loading.value = true;
     error.value = null;
 
     try {
-      const response = await mode_name();
+      const response = await mode_name(search);
 
       console.log("fetchmodes response:", response.data);
 
