@@ -1,0 +1,24 @@
+// src/constants/competency.js
+export const coreOptions = [
+  { label: "Delivering Service Excellence", value: "core_service_excellence" },
+  { label: "Exemplifying Integrity", value: "core_integrity" },
+  { label: "Interpersonal Skills", value: "core_interpersonal_skills" },
+];
+
+export const technicalOptions = [
+  { label: "Planning and Organizing", value: "technical_planning_organizing" },
+  { label: "Monitoring and Evaluation", value: "technical_monitoring_evaluation" },
+  { label: "Records Management", value: "technical_records_management" },
+  { label: "Partnering and Networking", value: "technical_partnering_networking" }, // na-fix ko rin typo na "Parterning"
+  { label: "Process Management", value: "technical_process_management" },
+  { label: "Attention to Details", value: "technical_attention_to_details" },
+];
+
+export const leadershipOptions = [
+  { label: "Thinking Strategically and Creatively", value: "leadership_strategic_thinking" },
+  { label: "Problem Solving and Decision Making", value: "leadership_problem_solving" },
+  { label: "Building Collaborative and Inclusive Working Relationships", value: "leadership_collaboration" },
+  { label: "Managing Performance and Coaching for Results", value: "leadership_coaching" },
+  { label: "Process Management", value: "leadership_process_management" },
+  { label: "Attention to Details", value: "leadership_attention_to_details" },
+];
