@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { api } from "boot/axios";
+import { suggested_employees } from "src/service/event/eventService";
 
 export const useEventStore = defineStore("event", {
   state: () => ({
@@ -7,6 +8,7 @@ export const useEventStore = defineStore("event", {
     selectedEvent: null,
     loading: false,
     error: null,
+    employees: []
   }),
 
   actions: {
@@ -159,5 +161,19 @@ export const useEventStore = defineStore("event", {
     clearSelectedEvent() {
       this.selectedEvent = null;
     },
+   async fetchSuggested(office, titleName) {
+  this.loading = true;
+  this.error = null;
+  try {
+    const response = await suggested_employees(office, titleName);
+    this.employees = response.data.data || response.data || [];
+  } catch (err) {
+    this.error = err.response?.data?.message || "Failed to load employees.";
+    this.employees = [];
+  } finally {
+    this.loading = false;
+  }
+}
   },
+  
 });
