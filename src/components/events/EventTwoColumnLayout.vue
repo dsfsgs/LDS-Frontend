@@ -22,7 +22,7 @@ export default defineComponent({
 .event-two-column-layout {
   display: grid;
 
-  grid-template-columns: 346px minmax(0, 1fr);
+  grid-template-columns: 500px minmax(0, 1fr);
 
   gap: 12px;
 
@@ -43,11 +43,12 @@ export default defineComponent({
   min-height: 680px;
 
   padding: 20px 22px;
+
 }
 
 .right-card {
   min-height: 680px;
-
+  
   padding: 20px 20px;
 }
 
