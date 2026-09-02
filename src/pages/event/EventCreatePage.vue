@@ -20,7 +20,7 @@
            LEFT PANEL
       ======================================================== -->
       <template #left>
-        <div class="section-title">Event111</div>
+        <div class="section-title">Event</div>
 
         <!-- TITLE -->
         <LabeledField label="Title">
@@ -28,22 +28,6 @@
             input-debounce="400" new-value-mode="add-unique" :options="titleOptions" :loading="titleLoading"
             @filter="filterTitles" @input-value="onTitleInput" popup-content-class="title-dropdown-scroll"
             placeholder="Enter event title" class="custom-input" />
-        </LabeledField>
-
-        <!-- CATEGORY -->
-        <LabeledField label="Category">
-          <q-select v-model="eventForm.category_name" outlined dense use-input hide-selected fill-input
-            input-debounce="400" new-value-mode="add-unique" :options="categoryOptions" :loading="categoryLoading"
-            @filter="filterCategory" @input-value="onCategoryInput" popup-content-class="title-dropdown-scroll"
-            placeholder="Enter event category" class="custom-input" />
-        </LabeledField>
-
-        <!-- SOURCE (RADIO) -->
-        <LabeledField label="Source">
-          <div class="source-radio-group">
-            <q-radio v-for="option in sourceOptions" :key="option.value" v-model="eventForm.source_name"
-              :val="option.value" :label="option.label" color="green" dense />
-          </div>
         </LabeledField>
 
         <!-- L&D INTERVENTION -->
@@ -58,13 +42,6 @@
               " />
         </LabeledField>
 
-        <!-- TYPE -->
-        <LabeledField label="Type">
-          <q-select v-model="eventForm.type_name" outlined dense use-input hide-selected fill-input input-debounce="400"
-            new-value-mode="add-unique" :options="typeOptions" :loading="titleLoading" @filter="filterType"
-            @input-value="onTypeInput" popup-content-class="title-dropdown-scroll" placeholder="Enter event type"
-            class="custom-input" />
-        </LabeledField>
       </template>
 
       <!-- =======================================================
@@ -103,8 +80,8 @@
               class="custom-input assessment-input" />
             <q-select v-model="eventForm.interventionForm.frequency" outlined dense emit-value map-options
               :options="frequencyOptions" placeholder="Frequency" class="custom-input" :display-value="eventForm.interventionForm.frequency
-                  ? undefined
-                  : 'Select Frequency'
+                ? undefined
+                : 'Select Frequency'
                 " />
           </template>
 
@@ -124,15 +101,31 @@
         <template v-else>
           <div class="section-title">Schedule Details</div>
 
-          <!-- VENUE + MODE -->
-          <div class="two-column-fields">
-            <LabeledField label="Venue">
-              <q-select v-model="eventForm.venue_name" outlined dense use-input hide-selected fill-input
-                input-debounce="400" new-value-mode="add-unique" :options="venueOptions" :loading="venueLoading"
-                @filter="filterVenues" @input-value="onVenuesInput" placeholder="Enter event venue"
-                popup-content-class="title-dropdown-scroll" class="custom-input" />
+          <LabeledField label="Venue">
+            <q-select v-model="eventForm.venue_name" outlined dense use-input hide-selected fill-input
+              input-debounce="400" new-value-mode="add-unique" :options="venueOptions" :loading="venueLoading"
+              @filter="filterVenues" @input-value="onVenuesInput" placeholder="Enter event venue"
+              popup-content-class="title-dropdown-scroll" class="custom-input" />
 
+          </LabeledField>
+          <!-- type and category -->
+          <div class="two-column-fields">
+
+            <LabeledField label="Category">
+              <q-select v-model="eventForm.category_name" outlined dense use-input hide-selected fill-input
+                input-debounce="400" new-value-mode="add-unique" :options="categoryOptions" :loading="categoryLoading"
+                @filter="filterCategory" @input-value="onCategoryInput" popup-content-class="title-dropdown-scroll"
+                placeholder="Enter event category" class="custom-input" />
             </LabeledField>
+            <LabeledField label="Type">
+              <q-select v-model="eventForm.type_name" outlined dense use-input hide-selected fill-input
+                input-debounce="400" new-value-mode="add-unique" :options="typeOptions" :loading="typeLoading"
+                @filter="filterType" @input-value="onTypeInput" placeholder="Enter event type"
+                popup-content-class="title-dropdown-scroll" class="custom-input" />
+            </LabeledField>
+
+
+
 
             <LabeledField label="Mode">
               <q-select v-model="eventForm.mode_name" outlined dense use-input hide-selected fill-input
@@ -140,8 +133,42 @@
                 @filter="filterModes" @input-value="onModesInput" placeholder="Enter event mode"
                 popup-content-class="title-dropdown-scroll" class="custom-input" />
             </LabeledField>
-          </div>
 
+            <LabeledField label="Conductor">
+              <q-input v-model.number="eventForm.conductor" type="string" outlined dense placeholder="Enter conductor"
+                class="custom-input" />
+            </LabeledField>
+            <!-- SOURCE (DROPDOWN) -->
+
+            <LabeledField label="Source">
+              <q-select v-model="eventForm.source_name" outlined dense emit-value map-options
+                :options="sourceOptions" placeholder="Select Source" class="custom-input"
+                :display-value="eventForm.source_name ? undefined : 'Select Source'" />
+
+              <div v-if="eventForm.source_name" class="source-hint">
+                {{ eventForm.source_name === 'internal' ? 'Training conducted by HRDD' : 'Training through Concerned Office' }}
+              </div>
+            </LabeledField>
+
+            <LabeledField label="Hours">
+              <q-input v-model.number="eventForm.hours" type="number" outlined dense min="0"
+                placeholder="Enter number of hours" class="custom-input" />
+            </LabeledField>
+            
+           <LabeledField label="Qualifications">
+
+            <q-input v-model="eventForm.qualifications" outlined dense type="text" rows="2"
+              placeholder="Enter qualifications" class="custom-input" />
+          </LabeledField>
+
+
+            <LabeledField label="fee">
+               <q-input v-model="eventForm.fee" outlined dense placeholder="fee"
+                class="custom-input" />
+            </LabeledField>
+
+          </div>
+               <div class="section-divider"></div>
           <!-- RESOURCE SPEAKER -->
           <LabeledField label="Resource Speaker" class="speaker-group">
             <div v-for="(speaker, index) in eventForm.speakers" :key="speaker.id" class="speaker-row">
@@ -162,6 +189,40 @@
                 @click="addSpeaker" />
             </div>
           </LabeledField>
+          <!-- COMPETENCY -->
+          <div class="section-divider"></div>
+          <div class="section-title forms-title">Competency</div>
+
+          <div class="competency-groups">
+            <div class="competency-group">
+              <div class="competency-group-title">Core</div>
+              <div class="competency-grid">
+                <q-checkbox v-for="option in coreOptions" :key="option.value" v-model="eventForm.competencies"
+                  :val="option.value" :label="option.label" color="green" keep-color dense
+                  class="competency-checkbox" />
+              </div>
+            </div>
+
+            <div class="competency-group">
+              <div class="competency-group-title">Technical</div>
+              <div class="competency-grid">
+                <q-checkbox v-for="option in technicalOptions" :key="option.value" v-model="eventForm.competencies"
+                  :val="option.value" :label="option.label" color="green" keep-color dense
+                  class="competency-checkbox" />
+              </div>
+            </div>
+
+            <div class="competency-group">
+              <div class="competency-group-title">Leadership</div>
+              <div class="competency-grid">
+                <q-checkbox v-for="option in leadershipOptions" :key="option.value" v-model="eventForm.competencies"
+                  :val="option.value" :label="option.label" color="green" keep-color dense
+                  class="competency-checkbox" />
+              </div>
+            </div>
+          </div>
+
+
 
           <!-- TABS: SCHEDULE DATE & DEPARTMENT -->
           <q-tabs v-model="activeTab" dense class="tab-navigation" active-color="green" indicator-color="green"
@@ -200,7 +261,7 @@
                 <div class="schedule-table-header">
                   <div class="date-column">Date</div>
                   <div class="time-column">Time</div>
-                  <div class="hours-column">Hours</div>
+                  <!-- <div class="hours-column">Hours</div> -->
                   <div class="action-column">Action</div>
                 </div>
 
@@ -213,12 +274,28 @@
                   <div class="time-column">
                     <div class="time-inputs">
                       <!-- START TIME (q-time picker, 24hr storage) -->
-                      <q-input :model-value="formatTimeDisplay(schedule.time_start)" outlined dense readonly
-                        placeholder="Start time" class="time-input">
+                      <q-input :model-value="formatTimeDisplay(schedule.morning_in)" outlined dense
+                        placeholder="Morning In" class="time-input">
                         <template #append>
                           <q-icon name="access_time" class="time-picker-icon">
                             <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                              <q-time v-model="schedule.time_start" mask="HH:mm" color="green">
+                              <q-time v-model="schedule.morning_in" mask="HH:mm" color="green">
+                                <div class="row items-center justify-end">
+                                  <q-btn v-close-popup label="Close" color="green" flat no-caps />
+                                </div>
+                              </q-time>
+                            </q-popup-proxy>
+                          </q-icon>
+                        </template>
+                      </q-input>
+
+                          <!-- START TIME (q-time picker, 24hr storage) -->
+                      <q-input :model-value="formatTimeDisplay(schedule.morning_out)" outlined dense 
+                        placeholder="Morning Out" class="time-input">
+                        <template #append>
+                          <q-icon name="access_time" class="time-picker-icon">
+                            <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                              <q-time v-model="schedule.morning_out" mask="HH:mm" color="green">
                                 <div class="row items-center justify-end">
                                   <q-btn v-close-popup label="Close" color="green" flat no-caps />
                                 </div>
@@ -231,12 +308,26 @@
                       <span class="time-separator">-</span>
 
                       <!-- END TIME (q-time picker, 24hr storage) -->
-                      <q-input :model-value="formatTimeDisplay(schedule.time_end)" outlined dense readonly
-                        placeholder="End time" class="time-input">
+                      <q-input :model-value="formatTimeDisplay(schedule.afternoon_in)" outlined dense
+                        placeholder="Afternoon In" class="time-input">
                         <template #append>
                           <q-icon name="access_time" class="time-picker-icon">
                             <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                              <q-time v-model="schedule.time_end" mask="HH:mm" color="green">
+                              <q-time v-model="schedule.afternoon_in" mask="HH:mm" color="green">
+                                <div class="row items-center justify-end">
+                                  <q-btn v-close-popup label="Close" color="green" flat no-caps />
+                                </div>
+                              </q-time>
+                            </q-popup-proxy>
+                          </q-icon>
+                        </template>
+                      </q-input>
+                       <q-input :model-value="formatTimeDisplay(schedule.afternoon_out)" outlined dense 
+                        placeholder="Afternoon Out" class="time-input">
+                        <template #append>
+                          <q-icon name="access_time" class="time-picker-icon">
+                            <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                              <q-time v-model="schedule.afternoon_out" mask="HH:mm" color="green">
                                 <div class="row items-center justify-end">
                                   <q-btn v-close-popup label="Close" color="green" flat no-caps />
                                 </div>
@@ -248,9 +339,9 @@
                     </div>
                   </div>
 
-                  <div class="hours-column schedule-hours">
+                  <!-- <div class="hours-column schedule-hours">
                     {{ getScheduleHours(schedule) }} hrs
-                  </div>
+                  </div> -->
 
                   <div class="action-column">
                     <q-btn flat round dense icon="delete_outline" class="delete-btn" @click="removeSchedule(index)">
@@ -370,97 +461,273 @@
     ========================================================== -->
     <q-dialog v-model="showDepartmentDialog" maximized transition-show="slide-up" transition-hide="slide-down">
       <q-card class="department-dialog">
-        <EventDialogHeader title="Add Departments"
-          subtitle="Select departments and specify the number of attendees for each." />
+        <EventDialogHeader title="Add Departments &amp; Employees"
+          subtitle="Select departments/employees and specify the number of attendees for each." />
 
         <q-separator />
 
-        <q-card-section class="department-dialog-body">
-          <!-- Search Bar -->
-          <q-input v-model="officeSearch" outlined dense clearable placeholder="Search departments..."
-            class="office-search">
-            <template #prepend>
-              <q-icon name="search" />
-            </template>
-          </q-input>
+        <!-- TABS: DEPARTMENT / EMPLOYEE -->
+        <q-tabs v-model="dialogTab" dense class="tab-navigation" active-color="green" indicator-color="green"
+          align="left" narrow-indicator>
+          <q-tab name="department" label="Department" />
+          <q-tab name="employee" label="Employee" />
+        </q-tabs>
 
-          <!-- Quick Actions Row -->
-          <div class="quick-actions-row">
-            <div class="selection-actions">
-              <q-btn flat dense no-caps label="Select All" class="select-all-btn" :disable="!filteredOffices.length"
-                @click="selectAllOffices" />
-              <q-btn flat dense no-caps label="Clear All" class="clear-all-btn" :disable="!selectedOffices.length"
-                @click="clearAllOffices" />
+        <q-separator />
 
-              <div class="selected-badge" v-if="selectedOffices.length > 0">
-                <q-badge color="green" text-color="white" rounded>
-                  {{ selectedOffices.length }} department{{
-                    selectedOffices.length > 1 ? "s" : ""
-                  }}
-                  selected
-                </q-badge>
+        <q-tab-panels v-model="dialogTab" animated class="department-dialog-body">
+
+          <!-- ===================== DEPARTMENT PANEL ===================== -->
+          <q-tab-panel name="department" class="dialog-tab-panel">
+            <!-- Search Bar -->
+            <q-input v-model="officeSearch" outlined dense clearable placeholder="Search departments..."
+              class="office-search">
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+
+            <!-- Quick Actions Row -->
+            <div class="quick-actions-row">
+              <div class="selection-actions">
+                <q-btn flat dense no-caps label="Select All" class="select-all-btn" :disable="!filteredOffices.length"
+                  @click="selectAllOffices" />
+                <q-btn flat dense no-caps label="Clear All" class="clear-all-btn" :disable="!selectedOffices.length"
+                  @click="clearAllOffices" />
+
+                <div class="selected-badge" v-if="selectedOffices.length > 0">
+                  <q-badge color="green" text-color="white" rounded>
+                    {{ selectedOffices.length }} department{{
+                      selectedOffices.length > 1 ? "s" : ""
+                    }}
+                    selected
+                  </q-badge>
+                </div>
+              </div>
+
+              <div class="bulk-attendee-wrapper">
+                <q-input v-model.number="bulkAttendeeCount" type="number" min="0" outlined dense
+                  placeholder="Set all to" class="bulk-input" style="width: 120px" />
+                <q-btn flat no-caps color="green" label="Apply to All Selected" :disable="selectedOffices.length === 0 ||
+                  bulkAttendeeCount === null ||
+                  bulkAttendeeCount === ''
+                  " @click="applyBulkAttendees" class="apply-bulk-btn" />
               </div>
             </div>
 
-            <div class="bulk-attendee-wrapper">
-              <q-input v-model.number="bulkAttendeeCount" type="number" min="0" outlined dense placeholder="Set all to"
-                class="bulk-input" style="width: 120px" />
-              <q-btn flat no-caps color="green" label="Apply to All Selected" :disable="selectedOffices.length === 0 ||
-                bulkAttendeeCount === null ||
-                bulkAttendeeCount === ''
-                " @click="applyBulkAttendees" class="apply-bulk-btn" />
+            <!-- Offices Table -->
+            <div class="offices-table-container">
+              <q-table :rows="filteredOffices" :columns="officeColumns" row-key="officeId"
+                :loading="officeStore.loading" :rows-per-page-options="[5, 10, 25, 50]"
+                v-model:pagination="officePagination" binary-state-sort selection="multiple"
+                v-model:selected="selectedOffices" class="offices-table" flat bordered>
+                <template #body-cell-office_name="props">
+                  <q-td :props="props">
+                    <div class="office-name-cell">{{ props.row.office_name }}</div>
+                  </q-td>
+                </template>
+
+                <template #body-cell-attendees="props">
+                  <q-td :props="props">
+                    <q-input v-model.number="props.row._attendees" type="number" min="0" outlined dense placeholder="0"
+                      class="attendee-input-cell" @update:model-value="updateAttendeeValue(props.row)">
+                      <template #append>
+                        <q-icon name="people" color="grey-6" size="18px" />
+                      </template>
+                    </q-input>
+                  </q-td>
+                </template>
+
+                <template #loading>
+                  <div class="loading-state">
+                    <q-spinner-dots color="green" size="40px" />
+                    <div>Loading departments...</div>
+                  </div>
+                </template>
+
+                <template #no-data>
+                  <div class="no-data-state">
+                    <q-icon name="business" size="40px" color="grey-4" />
+                    <div>No departments available</div>
+                  </div>
+                </template>
+              </q-table>
             </div>
+          </q-tab-panel>
+
+          <!-- ===================== EMPLOYEE PANEL ===================== -->
+          <q-tab-panel name="employee" class="dialog-tab-panel">
+            <!-- OFFICE SELECTOR -->
+            <q-select v-model="activeEmployeeOffice" outlined dense emit-value map-options
+              :options="departmentOfficeOptions" :loading="eventStore.loading" label="Select Office"
+              class="custom-input" @update:model-value="onOfficeChangeForEmployees" />
+
+            <div v-if="!activeEmployeeOffice" class="empty-state">
+              <q-icon name="info" size="28px" color="grey-4" />
+              <div>Select an office above to view suggested employees.</div>
+            </div>
+
+            <template v-else>
+              <!-- SEARCH BAR -->
+              <q-input v-model="employeeSearch" outlined dense clearable placeholder="Search employees..."
+                class="office-search employee-search-spacing">
+                <template #prepend>
+                  <q-icon name="search" />
+                </template>
+              </q-input>
+
+              <div class="quick-actions-row">
+                <div class="selection-actions">
+                  <q-btn flat dense no-caps label="Select All" class="select-all-btn"
+                    :disable="!filteredSuggestedEmployees.length" @click="selectAllEmployeesForOffice" />
+                  <q-btn flat dense no-caps label="Clear All" class="clear-all-btn"
+                    :disable="!currentOfficeSelectedEmployees.length" @click="clearAllEmployeesForOffice" />
+
+                  <div class="selected-badge" v-if="currentOfficeSelectedEmployees.length > 0">
+                    <q-badge color="green" text-color="white" rounded>
+                      {{ currentOfficeSelectedEmployees.length }} employee{{
+                        currentOfficeSelectedEmployees.length > 1 ? "s" : ""
+                      }} selected
+                    </q-badge>
+                  </div>
+                </div>
+              </div>
+
+              <div class="offices-table-container">
+                <q-table :rows="filteredSuggestedEmployees" :columns="employeeColumns" row-key="ControlNo"
+                  :loading="eventStore.loading" :rows-per-page-options="[5, 10, 25, 50]"
+                  v-model:pagination="employeeTablePagination" selection="multiple"
+                  v-model:selected="currentOfficeSelectedEmployees" class="offices-table" flat bordered>
+                  <template #body="props">
+                    <q-tr :props="props" :class="{ 'trained-row': props.row.isAlreadyTrained }">
+                      <q-td auto-width>
+                        <q-checkbox v-model="props.selected" />
+                      </q-td>
+
+                      <q-td v-for="col in props.cols" :key="col.name" :props="props">
+                        <template v-if="col.name === 'isAlreadyTrained'">
+                          <q-badge :color="props.row.isAlreadyTrained ? 'red' : 'green'">
+                            {{ props.row.isAlreadyTrained ? 'Yes' : 'No' }}
+                          </q-badge>
+                        </template>
+                        <template v-else-if="col.name === 'Action'">
+                          <q-btn flat dense round icon="visibility" color="primary"
+                            @click="openEmployeeRecordDialog(props.row)">
+                            <q-tooltip>View Records</q-tooltip>
+                          </q-btn>
+                        </template>
+                        <template v-else>
+                          {{ col.value }}
+                        </template>
+                      </q-td>
+                    </q-tr>
+                  </template>
+
+                  <template #loading>
+                    <div class="loading-state">
+                      <q-spinner-dots color="green" size="40px" />
+                      <div>Loading suggested employees...</div>
+                    </div>
+                  </template>
+
+                  <template #no-data>
+                    <div class="no-data-state">
+                      <q-icon name="person" size="40px" color="grey-4" />
+                      <div>No suggested employees found for this office.</div>
+                    </div>
+                  </template>
+                </q-table>
+              </div>
+            </template>
+          </q-tab-panel>
+
+        </q-tab-panels>
+
+        <q-card-actions align="right" class="dialog-actions">
+          <q-btn flat no-caps label="Cancel" v-close-popup />
+          <q-btn unelevated no-caps label="Add Selected" class="save-dialog-btn"
+            :disable="selectedOffices.length === 0 && allSelectedEmployees.length === 0"
+            @click="addSelectedDepartments" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- =========================================================
+     EMPLOYEE RECORD DIALOG (Civil Service + Training)
+========================================================== -->
+    <q-dialog v-model="showEmployeeRecordDialog">
+      <q-card class="employee-record-dialog">
+        <EventDialogHeader :title="selectedEmployeeRecord?.name || 'Employee Record'"
+          :subtitle="selectedEmployeeRecord?.position || ''" />
+
+        <q-separator />
+
+        <q-card-section class="employee-record-body">
+          <!-- CIVIL SERVICE SECTION -->
+          <div class="record-section-title">Civil Service Eligibility</div>
+
+          <div v-if="selectedEmployeeRecord?.x_civil_service?.length" class="record-table">
+            <q-markup-table flat bordered dense>
+              <thead>
+                <tr>
+                  <th class="text-left">Eligibility</th>
+                  <th class="text-left">Date</th>
+                  <th class="text-left">Rating</th>
+                  <th class="text-left">Place</th>
+                  <th class="text-left">License No.</th>
+                  <th class="text-left">License Expiry</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(cs, index) in selectedEmployeeRecord.x_civil_service" :key="index">
+                  <td>{{ cs.CivilServe }}</td>
+                  <td>{{ cs.Dates }}</td>
+                  <td>{{ cs.Rates }}</td>
+                  <td>{{ cs.Place }}</td>
+                  <td>{{ cs.LNumber || '—' }}</td>
+                  <td>{{ cs.LDate || '—' }}</td>
+                </tr>
+              </tbody>
+            </q-markup-table>
+          </div>
+          <div v-else class="record-empty">
+            No civil service records found.
           </div>
 
-          <!-- Offices Table with Pagination -->
-          <div class="offices-table-container">
-            <q-table :rows="filteredOffices" :columns="officeColumns" row-key="officeId" :loading="officeStore.loading"
-              :rows-per-page-options="[5, 10, 25, 50]" v-model:pagination="officePagination" binary-state-sort
-              selection="multiple" v-model:selected="selectedOffices" class="offices-table" flat bordered>
-              <!-- Custom column for Office Name -->
-              <template #body-cell-office_name="props">
-                <q-td :props="props">
-                  <div class="office-name-cell">
-                    {{ props.row.office_name }}
-                  </div>
-                </q-td>
-              </template>
+          <!-- TRAINING SECTION -->
+          <div class="record-section-title training-title">Training History</div>
 
-              <!-- Custom column for Attendees -->
-              <template #body-cell-attendees="props">
-                <q-td :props="props">
-                  <q-input v-model.number="props.row._attendees" type="number" min="0" outlined dense placeholder="0"
-                    class="attendee-input-cell" @update:model-value="updateAttendeeValue(props.row)">
-                    <template #append>
-                      <q-icon name="people" color="grey-6" size="18px" />
-                    </template>
-                  </q-input>
-                </q-td>
-              </template>
-
-              <!-- Loading State -->
-              <template #loading>
-                <div class="loading-state">
-                  <q-spinner-dots color="green" size="40px" />
-                  <div>Loading departments...</div>
-                </div>
-              </template>
-
-              <!-- No Data State -->
-              <template #no-data>
-                <div class="no-data-state">
-                  <q-icon name="business" size="40px" color="grey-4" />
-                  <div>No departments available</div>
-                </div>
-              </template>
-            </q-table>
+          <div v-if="selectedEmployeeRecord?.x_training?.length" class="record-table">
+            <q-markup-table flat bordered dense>
+              <thead>
+                <tr>
+                  <th class="text-left">Training</th>
+                  <th class="text-left">Hours</th>
+                  <th class="text-left">Conductor</th>
+                  <th class="text-left">Date From</th>
+                  <th class="text-left">Date To</th>
+                  <th class="text-left">Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(tr, index) in selectedEmployeeRecord.x_training" :key="index">
+                  <td>{{ tr.training }}</td>
+                  <td>{{ tr.NumHours }}</td>
+                  <td>{{ tr.Conductor }}</td>
+                  <td>{{ tr.DateFrom }}</td>
+                  <td>{{ tr.DateTo }}</td>
+                  <td>{{ tr.Type }}</td>
+                </tr>
+              </tbody>
+            </q-markup-table>
+          </div>
+          <div v-else class="record-empty">
+            No training records found.
           </div>
         </q-card-section>
 
         <q-card-actions align="right" class="dialog-actions">
-          <q-btn flat no-caps label="Cancel" v-close-popup />
-          <q-btn unelevated no-caps label="Add Selected" class="save-dialog-btn" :disable="selectedOffices.length === 0"
-            @click="addSelectedDepartments" />
+          <q-btn flat no-caps label="Close" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -468,10 +735,11 @@
 </template>
 
 <script>
-import { defineComponent, computed, ref, onMounted, watch } from "vue";
+import { defineComponent, computed, ref, onMounted, watch, } from "vue";
 import { useRouter } from "vue-router";
 import { useEventStore } from "stores/eventStore";
 import { useOfficeStore } from "stores/officeStore";
+import { Notify } from "quasar";
 
 import EventPageHeader from "components/events/EventPageHeader.vue";
 import EventTwoColumnLayout from "components/events/EventTwoColumnLayout.vue";
@@ -483,6 +751,10 @@ import { useTitleStore } from "src/stores/library/event/titleStore";
 import { useVenueStore } from "src/stores/library/event/venueStore";
 import { useCategoryStore } from "src/stores/library/event/categoryStore";
 import { useTypeStore } from "src/stores/library/event/typeStore";
+import { coreOptions, technicalOptions, leadershipOptions } from "src/constants/competency";
+import { sourceOptions } from "src/constants/source";
+
+import { buildCompetenciesPayload } from "src/composables/event/useCreateEventPayload";
 
 export default defineComponent({
   name: "CreateEventPage",
@@ -527,7 +799,7 @@ export default defineComponent({
 
 
     const router = useRouter();
-    const eventStore = useEventStore();
+
     const officeStore = useOfficeStore();
 
     // =========================================================
@@ -536,6 +808,137 @@ export default defineComponent({
     const saving = ref(false);
     const activeTab = ref("schedule");
 
+
+    //suggested employee
+    const showEmployeeRecordDialog = ref(false);
+    const selectedEmployeeRecord = ref(null);
+
+    function openEmployeeRecordDialog(employee) {
+      selectedEmployeeRecord.value = employee;
+      showEmployeeRecordDialog.value = true;
+    }
+    const eventStore = useEventStore();
+    const activeEmployeeOffice = ref(null);
+    const dialogTab = ref("department");
+
+    const employeeTablePagination = ref({
+      sortBy: "employee_name",
+      descending: false,
+      rowsPerPage: 10,
+      page: 1,
+    });
+
+    const employeeSearch = ref("");
+
+    const filteredSuggestedEmployees = computed(() => {
+      const search = employeeSearch.value?.toLowerCase().trim();
+      if (!search) return eventStore.employees;
+
+      return eventStore.employees.filter((emp) =>
+        emp.name?.toLowerCase().includes(search) ||
+        emp.position?.toLowerCase().includes(search)
+      );
+    });
+    const employeeColumns = [
+      {
+        name: "name",
+        required: true,
+        label: "Employee",
+        field: "name",
+        align: "left",
+        sortable: true,
+        style: "min-width: 220px;",
+      },
+      {
+        name: "position",
+        label: "Position",
+        field: "position",
+        align: "left",
+        sortable: true,
+        style: "min-width: 200px;",
+      },
+      {
+        name: "status",
+        label: "Status",
+        field: "status",
+        align: "center",
+        sortable: true,
+        style: "min-width: 100px;",
+      },
+      {
+        name: "trainingCount",
+        label: "trainingsAttended",
+        field: "trainingCount",
+        align: "center",
+        sortable: true,
+        style: "min-width: 90px;",
+      },
+      {
+        name: "isAlreadyTrained",
+        label: "Trained?",
+        field: "isAlreadyTrained",
+        align: "center",
+        sortable: true,
+        style: "min-width: 90px;",
+      },
+      {
+        name: "Action",
+        label: "Action",
+        field: "action",
+        align: "center",
+        sortable: true,
+        style: "min-width: 90px;",
+      },
+    ];
+    // options galing sa offices na na-add na sa Department tab
+    const departmentOfficeOptions = computed(() =>
+      selectedOffices.value.map((office) => ({
+        label: office.office_name,
+        value: office.office_name,
+      }))
+    );
+
+    // per-office na "basket" ng napiling employees
+    const selectedEmployeesByOffice = ref({});
+    const allSelectedEmployees = computed(() => {
+      return Object.values(selectedEmployeesByOffice.value).flat();
+    });
+
+    async function onOfficeChangeForEmployees(officeName) {
+      if (!officeName) return;
+      if (!selectedEmployeesByOffice.value[officeName]) {
+        selectedEmployeesByOffice.value[officeName] = [];
+      }
+      await eventStore.fetchSuggested(officeName, eventForm.value.title_name);
+    }
+
+    const currentOfficeSelectedEmployees = computed({
+      get() {
+        if (!activeEmployeeOffice.value) return [];
+        return selectedEmployeesByOffice.value[activeEmployeeOffice.value] || [];
+      },
+      set(val) {
+        if (!activeEmployeeOffice.value) return;
+        selectedEmployeesByOffice.value[activeEmployeeOffice.value] = val;
+      },
+    });
+
+    function selectAllEmployeesForOffice() {
+      currentOfficeSelectedEmployees.value = [...filteredSuggestedEmployees.value];
+    }
+
+    function clearAllEmployeesForOffice() {
+      currentOfficeSelectedEmployees.value = [];
+    }
+    async function onOfficeChangeForEmployees(officeName) {
+      employeeSearch.value = ""; // reset search
+      if (!officeName) return;
+      if (!selectedEmployeesByOffice.value[officeName]) {
+        selectedEmployeesByOffice.value[officeName] = [];
+      }
+      await eventStore.fetchSuggested(officeName, eventForm.value.title_name);
+    }
+
     // =========================================================
     // EVENT FORM
     // NOTE: schedule.time_start / time_end are stored as 24-hour
@@ -543,28 +946,51 @@ export default defineComponent({
     // the value is always parseable — no more free-typed "8am"
     // style strings that can silently break the hour calculation.
     // =========================================================
+    // const eventForm = ref({
+    //   title_name: "",
+    //   category_name: null,
+    //   source_name: null, // "In-house" or "External"
+    //   intervention_name: "Formal Learning", // ← dati null, ginawang default
+    //   type_name: null,
+    //   // interventionForm: {
+    //   //   // Learning by Doing
+    //   //   example: "",
+    //   //   output: "",
+    //   //   supervisor: "",
+    //   //   // Social Learning
+    //   //   learning_partner: "",
+    //   //   topic: "",
+    //   //   frequency: null,
+    //   //   // Self-Directed Learning
+    //   //   resource: "",
+    //   //   proof: "",
+    //   //   objective: "",
+    //   // },
+    //   venue_name: "",
+    //   mode_name: null,
+
+    //   speakers: [
+    //     {
+    //       id: Date.now(),
+    //       name: "",
+    //       agency: "",
+    //     },
+    //   ],
+
+    //   schedules: [],
+
+    //   departments: [],
+    // });
     const eventForm = ref({
       title_name: "",
       category_name: null,
-      source_name: null, // "In-house" or "External"
-      intervention_name: "Formal Learning", // ← dati null, ginawang default
+      source_name: null,
+      intervention_name: "Formal Learning",
       type_name: null,
-      interventionForm: {
-        // Learning by Doing
-        example: "",
-        output: "",
-        supervisor: "",
-        // Social Learning
-        learning_partner: "",
-        topic: "",
-        frequency: null,
-        // Self-Directed Learning
-        resource: "",
-        proof: "",
-        objective: "",
-      },
       venue_name: "",
       mode_name: null,
+      competencies: [], 
+      hours:null,
       speakers: [
         {
           id: Date.now(),
@@ -579,12 +1005,6 @@ export default defineComponent({
     // =========================================================
     // OPTIONS
     // =========================================================
-
-
-    const sourceOptions = [
-      { label: "In-house", value: "In-house" },
-      { label: "External", value: "External" },
-    ];
 
 
 
@@ -821,21 +1241,14 @@ export default defineComponent({
     });
 
     // Watch selectedOffices to ensure _attendees is always a number
-    watch(
-      selectedOffices,
-      (newVal) => {
-        newVal.forEach((office) => {
-          if (
-            office._attendees === undefined ||
-            office._attendees === null ||
-            isNaN(office._attendees)
-          ) {
-            office._attendees = 0;
-          }
-        });
-      },
-      { deep: true }
-    );
+    watch(selectedOffices, (newVal) => {
+      const stillExists = newVal.some(
+        (o) => o.office_name === activeEmployeeOffice.value
+      );
+      if (activeEmployeeOffice.value && !stillExists) {
+        activeEmployeeOffice.value = null;
+      }
+    });
 
     // =========================================================
     // SELECT ALL / CLEAR ALL (OFFICE DIALOG)
@@ -983,6 +1396,20 @@ export default defineComponent({
       return hours * 60 + minutes;
     }
 
+    // function formatTimeDisplay(timeStr) {
+    //   const totalMinutes = parseTimeToMinutes(timeStr);
+    //   if (totalMinutes === null) return "";
+
+    //   let hours = Math.floor(totalMinutes / 60);
+    //   const minutes = totalMinutes % 60;
+    //   const period = hours >= 12 ? "PM" : "AM";
+
+    //   hours = hours % 12;
+    //   if (hours === 0) hours = 12;
+
+    //   return `${hours}:${String(minutes).padStart(2, "0")} ${period}`;
+    // }
+
     function formatTimeDisplay(timeStr) {
       const totalMinutes = parseTimeToMinutes(timeStr);
       if (totalMinutes === null) return "";
@@ -994,9 +1421,8 @@ export default defineComponent({
       hours = hours % 12;
       if (hours === 0) hours = 12;
 
-      return `${hours}:${String(minutes).padStart(2, "0")} ${period}`;
+      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${period}`;
     }
-
     function computeScheduleMinutes(schedule) {
       const start = parseTimeToMinutes(schedule.time_start);
       const end = parseTimeToMinutes(schedule.time_end);
@@ -1042,6 +1468,14 @@ export default defineComponent({
     const showDepartmentDialog = ref(false);
 
     function openDepartmentDialog() {
+      if (!eventForm.value.title_name) {
+        Notify.create({
+          type: "warning",
+          message: "Please enter an event title first.",
+          position: "top",
+        });
+        return; // ← ito yung importante, kailangan i-stop dito
+      }
       officeSearch.value = "";
       bulkAttendeeCount.value = null;
 
@@ -1086,8 +1520,13 @@ export default defineComponent({
       selectedOffices.value.forEach((office) => {
         office._attendees = isNaN(count) ? 0 : count;
       });
+        //  Notify.create({
+        //   type: "warning",
+        //   message: "Please enter an event title first.",
+        //   position: "top",
+        // });
 
-      showNotify({
+      Notify.create({
         type: "positive",
         message: `Applied ${count} attendee${count > 1 ? "s" : ""} to ${selectedOffices.value.length
           } department(s).`,
@@ -1103,10 +1542,20 @@ export default defineComponent({
         attendees: Number(office._attendees) || 0,
       }));
 
+      // NEW: flatten per-office employee selections into eventForm
+      eventForm.value.employees = Object.entries(selectedEmployeesByOffice.value)
+        .flatMap(([officeName, employees]) =>
+          employees.map((emp) => ({
+            control_no: emp.ControlNo,
+            name: emp.name,
+            office: officeName,
+          }))
+        );
+
       showDepartmentDialog.value = false;
 
       if (selectedOffices.value.length > 0) {
-        showNotify({
+        Notify.create({
           type: "positive",
           message: `${selectedOffices.value.length} department(s) added successfully.`,
           position: "top",
@@ -1127,7 +1576,7 @@ export default defineComponent({
         await officeStore.fetchOffices();
       } catch (error) {
         console.error("Failed to load offices:", error);
-        showNotify({
+        Notify.create({
           type: "negative",
           message: "Failed to load departments. Please refresh the page.",
           position: "top",
@@ -1159,7 +1608,7 @@ export default defineComponent({
     async function createEvent() {
       // Validation
       if (!eventForm.value.title_name) {
-        showNotify({
+        Notify.create({
           type: "warning",
           message: "Please enter an event title.",
           position: "top",
@@ -1168,7 +1617,7 @@ export default defineComponent({
       }
 
       if (!eventForm.value.intervention_name) {
-        showNotify({
+        Notify.create({
           type: "warning",
           message: "Please select an intervention.",
           position: "top",
@@ -1177,7 +1626,7 @@ export default defineComponent({
       }
 
       if (!eventForm.value.type_name) {
-        showNotify({
+        Notify.create({
           type: "warning",
           message: "Please select a type.",
           position: "top",
@@ -1186,7 +1635,7 @@ export default defineComponent({
       }
 
       if (!eventForm.value.source_name) {
-        showNotify({
+        Notify.create({
           type: "warning",
           message: "Please select at least one source.",
           position: "top",
@@ -1198,7 +1647,7 @@ export default defineComponent({
         eventForm.value.intervention_name === "Formal Learning" &&
         !eventForm.value.schedules.length
       ) {
-        showNotify({
+        Notify.create({
           type: "warning",
           message: "Please add at least one schedule date.",
           position: "top",
@@ -1207,33 +1656,35 @@ export default defineComponent({
       }
 
       // Build payload according to API expectations
-      const payload = {
-        title_name: eventForm.value.title_name,
-        category_name: eventForm.value.category_name,
-        intervention_name: eventForm.value.intervention_name,
-        type_name: eventForm.value.type_name,
-        source_name: eventForm.value.source_name,
-        qualifications: null,
-        hours: totalScheduleHours.value,
-        venue_name: eventForm.value.venue_name,
-        mode_name: eventForm.value.mode_name,
-        form: buildInterventionFormPayload(),
-        office: eventForm.value.departments.map((department) => ({
-          office_name: department.name,
+    const payload = {
+      title_name: eventForm.value.title_name,
+      category_name: eventForm.value.category_name,
+      intervention_name: eventForm.value.intervention_name,
+      type_name: eventForm.value.type_name,
+      source_name: eventForm.value.source_name,
+      qualifications: eventForm.value.qualifications || null,
+      hours: eventForm.value.hours,
+      venue_name: eventForm.value.venue_name,
+      mode_name: eventForm.value.mode_name,
+      fee: eventForm.value.fee,
+      ...buildCompetenciesPayload(eventForm.value.competencies), // ← spread, hindi nested key
+      office: eventForm.value.departments.map((department) => ({
+        office_name: department.name,
+      })),
+      speaker: eventForm.value.speakers
+        .filter((speaker) => speaker.name.trim())
+        .map((speaker) => ({
+          speaker_name: speaker.name,
+          agency_name: speaker.agency,
         })),
-        speaker: eventForm.value.speakers
-          .filter((speaker) => speaker.name.trim())
-          .map((speaker) => ({
-            speaker_name: speaker.name,
-            agency_name: speaker.agency,
-          })),
-        DateTime: eventForm.value.schedules.map((schedule) => ({
-          schedule_date: schedule.rawDate,
-          time_in: formatTimeDisplay(schedule.time_start), // "8:00 AM" instead of "08:00"
-          time_out: formatTimeDisplay(schedule.time_end), // "5:00 PM" instead of "17:00"
-          hours: getScheduleHours(schedule),
-        })),
-      };
+      DateTime: eventForm.value.schedules.map((schedule) => ({
+        schedule_date: schedule.rawDate,
+        morning_in: formatTimeDisplay(schedule.morning_in),
+        morning_out: formatTimeDisplay(schedule.morning_out),
+        afternoon_in: formatTimeDisplay(schedule.afternoon_in),
+        afternoon_out: formatTimeDisplay(schedule.afternoon_out),
+      })),
+    };
 
       eventStore.clearError();
       saving.value = true;
@@ -1245,7 +1696,7 @@ export default defineComponent({
           throw new Error(result.message || "Unable to create event.");
         }
 
-        showNotify({
+        Notify.create({
           type: "positive",
           message: result.message || "Event created successfully.",
           position: "top",
@@ -1254,7 +1705,7 @@ export default defineComponent({
         router.back();
       } catch (error) {
         console.error(error);
-        showNotify({
+        Notify.create({
           type: "negative",
           message: error?.message || "Unable to create event.",
           position: "top",
@@ -1449,7 +1900,31 @@ export default defineComponent({
       typeLoading,
       typeOptions,
       onTypeInput,
-      filterType
+      filterType,
+
+      dialogTab,
+
+      activeEmployeeOffice,
+      employeeTablePagination,
+      employeeColumns,
+      departmentOfficeOptions,
+      currentOfficeSelectedEmployees,
+      allSelectedEmployees,
+      selectAllEmployeesForOffice,
+      clearAllEmployeesForOffice,
+      onOfficeChangeForEmployees,
+
+      showEmployeeRecordDialog,
+      selectedEmployeeRecord,
+      openEmployeeRecordDialog,
+
+      employeeSearch,
+      filteredSuggestedEmployees,
+
+      //competency
+      coreOptions,
+      technicalOptions,
+      leadershipOptions
 
     };
   },
@@ -1566,6 +2041,7 @@ export default defineComponent({
 
 .speaker-input {
   flex: 1.2;
+
 }
 
 .speaker-agency-input {
@@ -1999,7 +2475,7 @@ export default defineComponent({
 ========================================================= */
 .department-dialog {
   width: 100%;
-  max-width: 900px;
+  max-width: 1400px;
   height: 90vh;
   max-height: 90vh;
   border-radius: 13px;
@@ -2319,5 +2795,109 @@ export default defineComponent({
     max-height: 250px;
     overflow-y: auto;
   }
+}
+
+.trained-row {
+  background-color: #fdecea;
+  /* light red background */
+}
+
+.trained-row :deep(td) {
+  color: #c62828;
+  /* red text sa buong row */
+}
+
+.employee-record-dialog {
+  width: 700px;
+  max-width: 92vw;
+  border-radius: 13px;
+}
+
+.employee-record-body {
+  padding: 18px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.record-section-title {
+  margin-bottom: 8px;
+  color: #222222;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.training-title {
+  margin-top: 20px;
+}
+
+.record-table :deep(th) {
+  font-size: 11px;
+  background: #f5f5f5;
+}
+
+.record-table :deep(td) {
+  font-size: 11px;
+}
+
+.record-empty {
+  padding: 16px;
+  text-align: center;
+  color: #aaaaaa;
+  font-size: 12px;
+  border: 1px dashed #e0e0e0;
+  border-radius: 6px;
+}
+
+.employee-search-spacing {
+  margin-top: 14px;
+}
+
+
+.competency-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.competency-group {
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #fafafa;
+}
+
+.competency-group-title {
+  margin-bottom: 6px;
+  color: #333333;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.competency-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 10px;
+}
+
+.competency-checkbox {
+  margin-bottom: 0;
+  font-size: 12px;
+}
+
+.competency-checkbox :deep(.q-checkbox__label) {
+  font-size: 11.5px;
+  line-height: 1.3;
+}
+
+@media (max-width: 650px) {
+  .competency-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.source-hint {
+  /* margin-top: 4px; */
+  color: #666666;
+  font-size: 11px;
 }
 </style>
