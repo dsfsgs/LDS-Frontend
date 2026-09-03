@@ -155,8 +155,7 @@
                 :display-value="eventForm.source_name ? undefined : 'Select Source'" />
 
               <div v-if="eventForm.source_name" class="source-hint">
-                {{ eventForm.source_name === 'internal' ? 'Training conducted by HRDD' : 'Training through Concerned
-                Office' }}
+                {{ eventForm.source_name === 'internal' ? 'Training conducted by HRDD' : 'Training through Concerned Office' }}
               </div>
             </LabeledField>
 
