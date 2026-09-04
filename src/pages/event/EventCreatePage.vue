@@ -41,11 +41,20 @@
             :options="interventionOptions" placeholder="Select Intervention" class="custom-input" :display-value="eventForm.intervention_name ? undefined : 'Select Intervention'
               " />
         </LabeledField>
+
+
+        <!-- <div class="section-title forms-title">Forms</div>
+        <div class="competency-group">
+          <div class="competency-grid">
+            <q-checkbox v-for="option in formsOptions" :key="option.value" :model-value="true" :val="option.value"
+              :label="option.label" color="green" keep-color dense disable class="competency-checkbox" />
+          </div>
+        </div> -->
         <div class="section-divider"></div>
 
         <div class="section-title forms-title">Forms</div>
         <div class="competency-group">
-          <div class="competency-grid">
+          <div class="forms-list">
             <q-checkbox v-for="option in formsOptions" :key="option.value" :model-value="true" :val="option.value"
               :label="option.label" color="green" keep-color dense disable class="competency-checkbox" />
           </div>
@@ -109,7 +118,6 @@
              the default panel before an Intervention is chosen) -->
         <template v-else>
           <div class="section-title">Schedule Details</div>
-
           <LabeledField label="Venue">
             <q-select v-model="eventForm.venue_name" outlined dense use-input hide-selected fill-input
               input-debounce="400" new-value-mode="add-unique" :options="venueOptions" :loading="venueLoading"
@@ -133,9 +141,6 @@
                 popup-content-class="title-dropdown-scroll" class="custom-input" />
             </LabeledField>
 
-
-
-
             <LabeledField label="Mode">
               <q-select v-model="eventForm.mode_name" outlined dense use-input hide-selected fill-input
                 input-debounce="400" new-value-mode="add-unique" :options="modeOptions" :loading="modeLoading"
@@ -144,7 +149,7 @@
             </LabeledField>
 
             <LabeledField label="Conductor">
-              <q-input v-model.number="eventForm.conductor" type="string" outlined dense placeholder="Enter conductor"
+              <q-input v-model.number="eventForm.conducted_by" type="string" outlined dense placeholder="Enter conductor"
                 class="custom-input" />
             </LabeledField>
             <!-- SOURCE (DROPDOWN) -->
@@ -182,9 +187,14 @@
             <div v-for="(speaker, index) in eventForm.speakers" :key="speaker.id" class="speaker-row">
               <q-input v-model="speaker.name" outlined dense placeholder="Enter resource speaker"
                 class="custom-input speaker-input" />
+                <q-input v-model="speaker.position" outlined dense placeholder="Position"
+                class="custom-input speaker-agency-input" />
 
               <q-input v-model="speaker.agency" outlined dense placeholder="Agency"
                 class="custom-input speaker-agency-input" />
+
+
+    
 
               <q-btn v-if="eventForm.speakers.length > 1" flat round dense icon="close" class="remove-speaker-btn"
                 @click="removeSpeaker(index)">
@@ -867,11 +877,13 @@ export default defineComponent({
       mode_name: null,
       competencies: [],
       hours: null,
+     conducted_by: null,
       speakers: [
         {
           id: Date.now(),
           name: "",
           agency: "",
+          position: "",
         },
       ],
       // forms:[],
@@ -1363,6 +1375,7 @@ export default defineComponent({
         id: Date.now() + Math.random(),
         name: "",
         agency: "",
+        position: "",
       });
     }
 
@@ -1396,21 +1409,21 @@ export default defineComponent({
       });
     }
 
-    function applyDates() {
+      function applyDates() {
       const oldSchedules = eventForm.value.schedules;
 
       eventForm.value.schedules = selectedDates.value.map((date) => {
-        const existing = oldSchedules.find(
-          (schedule) => schedule.rawDate === date
-        );
+        const existing = oldSchedules.find((schedule) => schedule.rawDate === date);
 
         return {
           id: existing?.id || Date.now() + Math.random(),
           rawDate: date,
           date: formatDate(date),
-          // Default to 08:00 - 17:00 (24hr "HH:mm"), matches q-time's mask
-          time_start: existing?.time_start || "08:00",
-          time_end: existing?.time_end || "17:00",
+          // Default to 08:00 - 17:00, same as EventCreatePage
+          morning_in: existing?.morning_in || "08:00",
+          morning_out: existing?.morning_out || "12:00",
+          afternoon_in: existing?.afternoon_in || "13:00",
+          afternoon_out: existing?.afternoon_out || "17:00",
         };
       });
 
@@ -1768,6 +1781,7 @@ export default defineComponent({
         category_name: eventForm.value.category_name,
         intervention_name: eventForm.value.intervention_name,
         type_name: eventForm.value.type_name,
+        conducted_by: eventForm.value.conducted_by,
         source_name: eventForm.value.source_name,
         qualifications: eventForm.value.qualifications || null,
         hours: eventForm.value.hours,
@@ -1782,7 +1796,8 @@ export default defineComponent({
           .filter((speaker) => speaker.name.trim())
           .map((speaker) => ({
             speaker_name: speaker.name,
-            agency_name: speaker.agency,
+            agency: speaker.agency,
+            position: speaker.position,
           })),
         DateTime: eventForm.value.schedules.map((schedule) => ({
           schedule_date: schedule.rawDate,
@@ -2544,8 +2559,13 @@ export default defineComponent({
 }
 
 .cancel-btn {
-  color: #777777;
+  min-height: 38px;
+  padding: 0 22px;
+  border-radius: 8px;
+  color: #ffffff;
+  background:red;
   font-size: 11px;
+  font-weight: 600;
 }
 
 .create-btn {
@@ -3062,6 +3082,24 @@ export default defineComponent({
 
 .employee-list-position {
   color: #888888;
+  font-size: 11px;
+}
+
+/* =========================================================
+   FORMS (left panel)
+========================================================= */
+.forms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.forms-list :deep(.q-checkbox) {
+  min-height: 30px;
+}
+
+.forms-list :deep(.q-checkbox__label) {
+  color: #373737;
   font-size: 11px;
 }
 </style>

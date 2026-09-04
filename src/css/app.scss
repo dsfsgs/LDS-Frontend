@@ -8,6 +8,7 @@
 html {
   font-size: var(--base-font-size);
   font-size: 12px; /* Adjust as needed */
+
 }
 
 body {
@@ -33,4 +34,7 @@ body {
       background: green;
     }
   }
+}
+.swal2-container {
+  z-index: 3001 !important; // Above Quasar header (2000) and drawer (3000)
 }

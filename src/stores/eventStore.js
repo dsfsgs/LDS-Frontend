@@ -59,7 +59,7 @@ export const useEventStore = defineStore("event", {
       this.error = null;
 
       try {
-        const response = await api.put(`/event/update/${eventId}`, eventData);
+        const response = await api.put(`/event/edit/${eventId}`, eventData);
         if (response.data.success) {
           await this.fetchEvents();
           return {
@@ -118,35 +118,6 @@ export const useEventStore = defineStore("event", {
         }
       } catch (err) {
         const message = err.response?.data?.message || "Failed to fetch event";
-        this.error = message;
-        return { success: false, message };
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async addSchedule(eventId, scheduleData) {
-      this.loading = true;
-      this.error = null;
-
-      try {
-        const response = await api.post("/event/schedule/store", {
-          event_id: eventId,
-          ...scheduleData,
-        });
-
-        if (response.data.success) {
-          await this.fetchEventById(eventId);
-          return {
-            success: true,
-            message: response.data.message || "Schedule added successfully",
-          };
-        } else {
-          this.error = response.data.message;
-          return { success: false, message: response.data.message };
-        }
-      } catch (err) {
-        const message = err.response?.data?.message || "Failed to add schedule";
         this.error = message;
         return { success: false, message };
       } finally {

@@ -69,15 +69,15 @@
           <template #body-cell-event="props">
             <q-td :props="props">
               <div class="event-name">{{ props.row.title_name }}</div>
-              <div class="event-meta">{{ props.row.type_name || "—" }}</div>
+              <!-- <div class="event-meta">{{ props.row.type_name || "—" }} need to change LND type</div> -->  
             </q-td>
           </template>
 
           <!-- STATUS -->
           <template #body-cell-status="props">
             <q-td :props="props">
-              <span class="status-badge" :class="statusClass(props.row.status)">
-                {{ props.row.status }}
+              <span class="status-badge" :class="(props.row.computedStatus)">
+                {{ props.row.computedStatus }}
               </span>
             </q-td>
           </template>
@@ -92,6 +92,7 @@
                   dense
                   icon="visibility"
                   class="action-view"
+                  color="green"
                   @click="goToEvent(props.row.event_id)"
                 >
                   <q-tooltip>View Event</q-tooltip>
@@ -103,6 +104,7 @@
                   dense
                   icon="edit"
                   class="action-edit"
+                  color="orange"
                   @click="editEvent(props.row.raw)"
                 >
                   <q-tooltip>Edit Event</q-tooltip>
@@ -151,9 +153,9 @@
         <q-card-section class="dialog-header">
           <div>
             <div class="dialog-title">Edit Event</div>
-            <div class="dialog-subtitle">
-              Update this event and its schedule.
-            </div>
+            <!-- <div class="dialog-subtitle">
+              Update Event.
+            </div> -->
           </div>
 
           <q-btn flat round dense icon="close" v-close-popup />
@@ -171,7 +173,7 @@
             {{ eventStore.error }}
           </q-banner>
 
-          <div class="section-label">Event Details</div>
+          <div class="section-label">Event</div>
 
           <div class="form-grid">
             <q-input
@@ -182,7 +184,7 @@
               class="col-span-2"
             />
 
-            <q-input v-model="form.source_name" outlined dense label="Source" />
+            <!-- <q-input v-model="form.source_name" outlined dense label="Source" />
 
             <q-input v-model="form.type_name" outlined dense label="Type" />
 
@@ -196,12 +198,12 @@
               dense
               label="Qualifications"
               class="col-span-2"
-            />
+            /> -->
           </div>
 
-          <div class="section-label">Schedule</div>
+          <!-- <div class="section-label">Schedule</div> -->
 
-          <div class="form-grid">
+          <!-- <div class="form-grid">
             <q-input
               v-model="form.venue_name"
               outlined
@@ -221,16 +223,16 @@
             />
 
             <q-select
-              v-model="form.status"
+              v-model="form.computedStatus"
               outlined
               dense
               emit-value
               map-options
               label="Status"
-              :options="statusOptions"
+              :options="computedStatus"
               class="col-span-2"
             />
-          </div>
+          </div> -->
         </q-card-section>
 
         <q-card-actions align="right" class="dialog-actions">
@@ -295,7 +297,7 @@ export default defineComponent({
 
     const search = ref("");
 
-    const statusOptions = ["Created", "Ongoing", "Completed", "Cancelled"];
+  
 
     // ---------------------------------------------------------------
     // Table
@@ -309,15 +311,15 @@ export default defineComponent({
         align: "left",
         sortable: true,
       },
-      { name: "venue", label: "VENUE", field: "venue", align: "left" },
+      // { name: "venue", label: "VENUE", field: "venue", align: "left" },
       {
         name: "schedule",
         label: "LATEST SCHEDULE",
         field: "latest_schedule",
         align: "left",
       },
-      { name: "status", label: "STATUS", field: "status", align: "left" },
-      { name: "actions", label: "", field: "actions", align: "right" },
+      { name: "status", label: "STATUS", field: "computedStatus", align: "left" },
+      { name: "actions", label: "Action", field: "actions", align: "center" },
     ];
 
     // Flattens each event + its primary (first) schedule entry into one
@@ -333,7 +335,7 @@ export default defineComponent({
           type_name: event.type_name,
           venue: primarySchedule.venue_name || "—",
           latest_schedule: primarySchedule.latest_schedule || "—",
-          status: primarySchedule.status || "—",
+          computedStatus: primarySchedule.computedStatus || "—",
           raw: event,
         };
       })
@@ -347,18 +349,12 @@ export default defineComponent({
         return (
           row.title_name?.toLowerCase().includes(keyword) ||
           row.venue?.toLowerCase().includes(keyword) ||
-          row.status?.toLowerCase().includes(keyword)
+          row.computedStatus?.toLowerCase().includes(keyword)
         );
       });
     });
 
-    function statusClass(status) {
-      const key = (status || "").toLowerCase();
-      if (key === "ongoing") return "status-ongoing";
-      if (key === "completed") return "status-completed";
-      if (key === "cancelled") return "status-cancelled";
-      return "status-created";
-    }
+  
 
     function clearFilters() {
       search.value = "";
@@ -396,7 +392,7 @@ export default defineComponent({
       venue_name: "",
       mode_name: "",
       latest_schedule: "",
-      status: "Created",
+      computedStatus: "",
     });
 
     const form = ref(emptyForm());
@@ -412,15 +408,15 @@ export default defineComponent({
       editingEvent.value = event;
       form.value = {
         title_name: event.title_name || "",
-        source_name: event.source_name || "",
-        type_name: event.type_name || "",
-        hours: event.hours || "",
-        fee: event.fee || "",
-        qualifications: event.qualifications || "",
-        venue_name: primarySchedule.venue_name || "",
-        mode_name: primarySchedule.mode_name || "",
-        latest_schedule: primarySchedule.latest_schedule || "",
-        status: primarySchedule.status || "Created",
+        // source_name: event.source_name || "",
+        // type_name: event.type_name || "",
+        // hours: event.hours || "",
+        // fee: event.fee || "",
+        // qualifications: event.qualifications || "",
+        // venue_name: primarySchedule.venue_name || "",
+        // mode_name: primarySchedule.mode_name || "",
+        // latest_schedule: primarySchedule.latest_schedule || "",
+        // status: primarySchedule.status || "Created",
       };
       eventStore.clearError();
       showFormDialog.value = true;
@@ -431,20 +427,20 @@ export default defineComponent({
 
       return {
         title_name: form.value.title_name,
-        source_name: form.value.source_name,
-        type_name: form.value.type_name,
-        hours: form.value.hours,
-        fee: form.value.fee,
-        qualifications: form.value.qualifications,
-        schedule: [
-          {
-            scheduleId: primarySchedule?.scheduleId,
-            venue_name: form.value.venue_name,
-            mode_name: form.value.mode_name,
-            latest_schedule: form.value.latest_schedule,
-            status: form.value.status,
-          },
-        ],
+        // source_name: form.value.source_name,
+        // type_name: form.value.type_name,
+        // hours: form.value.hours,
+        // fee: form.value.fee,
+        // qualifications: form.value.qualifications,
+        // schedule: [
+        //   {
+        //     scheduleId: primarySchedule?.scheduleId,
+        //     venue_name: form.value.venue_name,
+        //     mode_name: form.value.mode_name,
+        //     latest_schedule: form.value.latest_schedule,
+        //     // status: form.value.status,
+        //   },
+        // ],
       };
     }
 
@@ -503,7 +499,7 @@ export default defineComponent({
       search,
       columns,
       filteredRows,
-      statusClass,
+    
       clearFilters,
 
       // View
@@ -513,7 +509,7 @@ export default defineComponent({
       showFormDialog,
       isEditMode,
       form,
-      statusOptions,
+   
       openAddEvent,
       editEvent,
       saveEvent,
@@ -751,7 +747,7 @@ export default defineComponent({
 
 .action-buttons {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
 
   gap: 2px;
 }
