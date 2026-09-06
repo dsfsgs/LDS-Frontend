@@ -14,7 +14,7 @@
     <!-- ===================================================
          LOADING / ERROR
     ==================================================== -->
-     <LoadingState v-if="loading" message="Loading schedule details..." full-page />
+    <LoadingState v-if="loading" message="Loading schedule details..." full-page />
     <div v-else-if="errorMessage" class="error-state">{{ errorMessage }}</div>
 
     <template v-else>
@@ -137,7 +137,7 @@
           </div>
         </div>
 
-        <q-table flat :rows="employeeTags" :columns="employeeColumns" row-key="id"
+        <q-table flat :rows="employeeTags" :columns="employeeTagColumns" row-key="id"
           :rows-per-page-options="[0, 5, 10, 20, 50, 100]" class="detail-table">
           <template #no-data>
             <div class="table-empty">No tagged employees.</div>
@@ -179,10 +179,31 @@
                   {{ props.row.nominate_status || 'Pending' }}
                 </q-badge>
               </template>
+              <!-- ✅ NEW: truncated reason with tooltip -->
+              <template v-else-if="col.name === 'nominate_reason'">
+                <span class="reason-cell">
+                  {{ truncateText(props.row.nominate_reason, 24) }}
+                  <q-tooltip max-width="300px" class="reason-tooltip">
+                    {{ props.row.nominate_reason }}
+                  </q-tooltip>
+                </span>
+              </template>
               <template v-else-if="col.name === 'action'">
-                <q-btn flat dense round icon="delete" color="negative" @click.stop="deleteNominatedEmployee(props.row)">
-                  <q-tooltip>Remove Nomination</q-tooltip>
-                </q-btn>
+                <div class="row-actions">
+                  <q-btn flat dense round icon="visibility" color="primary"
+                    @click.stop="viewNominationDetails(props.row)">
+                    <q-tooltip>View Details</q-tooltip>
+                  </q-btn>
+
+                  <q-btn flat dense round icon="edit" color="orange" @click.stop="openEditReasonDialog(props.row)">
+                    <q-tooltip>Edit Reason</q-tooltip>
+                  </q-btn>
+
+                  <q-btn flat dense round icon="delete" color="negative"
+                    @click.stop="deleteNominatedEmployee(props.row)">
+                    <q-tooltip>Remove Nomination</q-tooltip>
+                  </q-btn>
+                </div>
               </template>
               <template v-else>
                 {{ col.value }}
@@ -335,7 +356,60 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <q-dialog v-model="showNominationDetailsDialog">
+      <q-card style="width: 500px; max-width: 90vw;">
+        <q-card-section class="dialog-header">
+          <div class="section-title">{{ viewedNomination?.full_name }}</div>
+          <div class="section-sub">
+            {{ viewedNomination?.designation }} — {{ viewedNomination?.office }}
+          </div>
+        </q-card-section>
 
+        <q-separator />
+
+        <q-card-section>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Control No.</span>
+              <span class="detail-value">{{ viewedNomination?.control_no }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Status</span>
+              <span class="detail-value">{{ viewedNomination?.status }}</span>
+            </div>
+            <div class="detail-item" style="grid-column: 1 / -1;">
+              <span class="detail-label">Reason</span>
+              <span class="detail-value">{{ viewedNomination?.nominate_reason || "—" }}</span>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat no-caps label="Close" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+    <q-dialog v-model="showEditReasonDialog">
+      <q-card style="width: 480px; max-width: 90vw;">
+        <q-card-section class="dialog-header">
+          <div class="section-title">Edit Nomination Reason</div>
+          <div class="section-sub">{{ editingReasonRow?.full_name }}</div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-section>
+          <q-input v-model="editReasonText" outlined type="textarea" autogrow dense
+            placeholder="Reason for nominating..." :rules="[val => !!val?.trim() || 'Reason is required']" />
+        </q-card-section>
+
+        <q-card-actions align="right" class="dialog-actions">
+          <q-btn flat no-caps label="Cancel" v-close-popup />
+          <q-btn unelevated no-caps label="Save" color="green" class="save-dialog-btn" :loading="employeeStore.loading"
+            @click="saveEditedReason" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -376,6 +450,16 @@ export default defineComponent({
     const viewedEmployee = ref(null);
 
     const employeeColumns = [
+      { name: "ControlNo", label: "Control No.", field: "ControlNo", align: "left" },
+      { name: "name", label: "Name", field: "name", align: "left" },
+      // { name: "office", label: "Office", field: "office", align: "left" },
+      { name: "position", label: "Position", field: "position", align: "left" },
+      // { name: "isAlreadyTrained", label: "Status", field: "isAlreadyTrained", align: "center" },
+      { name: "status", label: "Status", field: "status", align: "center" },
+      { name: "action", label: "", field: "action", align: "center" },
+    ];
+
+    const employeeTagColumns = [
       { name: "ControlNo", label: "Control No.", field: "control_no", align: "left" },
       { name: "name", label: "Name", field: "name", align: "left" },
       // { name: "office", label: "Office", field: "office", align: "left" },
@@ -460,12 +544,17 @@ export default defineComponent({
     const nominatedColumns = [
       { name: "controlNo", label: "Control No.", field: "control_no", align: "left" },
       { name: "name", label: "Name", field: "full_name", align: "left" },
-      { name: "office", label: "Office", field: "office", align: "left" },
+      // { name: "office", label: "Office", field: "office", align: "left" },
       { name: "designation", label: "Position", field: "designation", align: "left" },
       { name: "status", label: "Status", field: "status", align: "left" },
-      { name: "nominate_reason", label: "Reason", field: "nominate_reason", align: "left" },
+      { name: "nominate_reason", label: "Reason", field: "nominate_reason", align: "left", style: "max-width: 200px" },
       { name: "action", label: "Action", field: "action", align: "left" },
     ];
+    function truncateText(text, maxLength = 24) {
+      if (!text) return "—";
+      if (text.length <= maxLength) return text;
+      return text.slice(0, maxLength).trim() + "...";
+    }
 
     const confirmationColumns = [
       { name: "ControlNo", label: "Control No.", field: "ControlNo", align: "left" },
@@ -553,6 +642,55 @@ export default defineComponent({
       }
     }
 
+    const showNominationDetailsDialog = ref(false);
+    const viewedNomination = ref(null);
+
+    function viewNominationDetails(row) {
+      viewedNomination.value = row;
+      showNominationDetailsDialog.value = true;
+    }
+
+    const showEditReasonDialog = ref(false);
+    const editingReasonRow = ref(null);
+    const editReasonText = ref("");
+
+    function openEditReasonDialog(row) {
+      editingReasonRow.value = row;
+      editReasonText.value = row.nominate_reason || "";
+      showEditReasonDialog.value = true;
+    }
+
+    async function saveEditedReason() {
+      if (!editReasonText.value?.trim()) {
+        Notify.create({
+          type: "negative",
+          message: "Reason is required.",
+          position: "top", // ✅
+        });
+        return;
+      }
+
+      const result = await employeeStore.editEmployeeReason(
+        editingReasonRow.value.nominated_employee_id,
+        { nominate_reason: editReasonText.value.trim() }
+      );
+
+      if (result.success) {
+        Notify.create({
+          type: "positive",
+          message: result.message,
+          position: "top", // ✅
+        });
+        showEditReasonDialog.value = false;
+        await loadNominatedEmployees();
+      } else {
+        Notify.create({
+          type: "negative",
+          message: result.message,
+          position: "top", // ✅
+        });
+      }
+    }
     function deleteNominatedEmployee(row) {
       Swal.fire({
         title: "Remove Nomination",
@@ -623,6 +761,7 @@ export default defineComponent({
       employeeTags,
       employeeColumns,
       competencyGroups,
+      employeeTagColumns,
 
       showNominationDialog,
       nominationStep,
@@ -649,7 +788,21 @@ export default defineComponent({
       nominatedColumns,
 
       // actions
-      deleteNominatedEmployee
+      deleteNominatedEmployee,
+
+      // function helper 
+      truncateText,
+      // dialog 
+      showNominationDetailsDialog,
+      viewedNomination,
+      viewNominationDetails,
+
+      showEditReasonDialog,
+      editingReasonRow,
+      editReasonText,
+      openEditReasonDialog,
+      saveEditedReason,
+
     };
   },
 });
@@ -1096,6 +1249,21 @@ export default defineComponent({
 /* .save-dialog-btn{
   color: #000;
 } */
+.reason-cell {
+  cursor: help;
+}
+
+.reason-tooltip {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* =========================================================
    RESPONSIVE
 ========================================================= */
