@@ -5,6 +5,7 @@ import {
   office_employee_nominate,
   office_employee_remove_nominated_event,
   office_list_of_employee_nominated,
+  office_employee_reason
 } from "src/service/office/event/employeeService";
 
 export const useEmployeeStore = defineStore("employee", {
@@ -84,5 +85,24 @@ export const useEmployeeStore = defineStore("employee", {
         this.loading = false;
       }
     },
+
+        async editEmployeeReason(nominatedEmployeeId, payload) {
+        this.loading = true;
+        this.error = null;
+
+        try {
+          const response = await office_employee_reason(nominatedEmployeeId, payload);
+          return {
+            success: true,
+            message: response.data.message || "Reason updated successfully",
+          };
+        } catch (err) {
+          const message = err.response?.data?.message || "Failed to update Reason";
+          this.error = message;
+          return { success: false, message };
+        } finally {
+          this.loading = false;
+        }
+      },
   },
 });

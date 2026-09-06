@@ -23,3 +23,8 @@ export const office_employee_remove_nominated_event = (nominatedEmployeeId) => {
   return api.delete(`office/employee/delete/${nominatedEmployeeId}`);
 };
 
+//  edit the employee reason
+export const office_employee_reason = (nominatedEmployeeId,payload) => {
+  return api.put(`office/employee/nominated-employee/${nominatedEmployeeId}/reason`, payload); //
+};
+
