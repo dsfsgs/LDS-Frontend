@@ -124,12 +124,17 @@ const routes = [
       //   component: () => import("pages/event/EventViewPage.vue"),
       //   meta: { requiresAuth: true, roles: ["office_admin"] },
       // },
-       {
-        path: "office/view-events",
-        name: "office-view-events",
-        component: () => import("pages/office/event/EventViewPage.vue"),
-        meta: { requiresAuth: true, roles: ["office_admin"] },
-      },
+      //  {
+      //   path: "office/view-events",
+      //   name: "office-view-events",
+      //   component: () => import("pages/office/event/EventViewPage.vue"),
+      //   meta: { requiresAuth: true, roles: ["office_admin"] },
+      // },
+          {
+      path: "office/events/:scheduleId",
+      name: "office-event-view",
+      component: () => import("pages/office/event/EventViewPage.vue"),
+    },
     ],
   },
   {
