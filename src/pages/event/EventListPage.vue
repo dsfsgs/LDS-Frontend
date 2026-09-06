@@ -5,12 +5,13 @@
     ====================================================== -->
     <section class="page-header">
       <div>
-        <h5>Event Management list</h5>
+        <h5>{{ officeView ? "Office Events" : "Event Management list" }}</h5>
 
-        <p>Manage learning and development events and their schedules.</p>
+        <p>{{ officeView ? "View learning and development events for your office." : "Manage learning and development events and their schedules." }}</p>
       </div>
 
       <q-btn
+       
         unelevated
         no-caps
         icon="add"
@@ -87,6 +88,7 @@
             <q-td :props="props">
               <div class="action-buttons">
                 <q-btn
+                 
                   flat
                   round
                   dense
@@ -99,6 +101,7 @@
                 </q-btn>
 
                 <q-btn
+                 
                   flat
                   round
                   dense
@@ -290,6 +293,13 @@ import { useEventStore } from "stores/eventStore";
 export default defineComponent({
   name: "EventPage",
 
+  // props: {
+  //   officeView: {
+  //     type: Boolean,
+  //     default: false,
+  //   },
+  // },
+
   setup() {
     const $q = useQuasar();
     const router = useRouter();
@@ -372,7 +382,10 @@ export default defineComponent({
     // VIEW EVENT (navigates to its own page)
     // ---------------------------------------------------------------
     function goToEvent(eventId) {
-      router.push({ name: "view events", query: { id: eventId } });
+      router.push({
+        name: "view events",
+        query: { id: eventId },
+      });
     }
 
     // ---------------------------------------------------------------

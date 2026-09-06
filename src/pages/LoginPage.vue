@@ -300,7 +300,11 @@ export default {
       });
 
       if (result.success) {
-        router.push("/admin/dashboard");
+        router.push(
+          authStore.roles.includes("office_admin")
+            ? { name: "office-dashboard" }
+            : { name: "dashboard" }
+        );
       }
       // On failure, authStore.error is already set and rendered in the banner
     };

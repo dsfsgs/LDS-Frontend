@@ -37,7 +37,7 @@ export const useOfficeStore = defineStore("office", {
 
       try {
         const response = await api.get(
-          `/employee/show/${encodeURIComponent(office)}`
+          `/office/employee/${encodeURIComponent(office)}`
         );
 
         if (response.data.success) {

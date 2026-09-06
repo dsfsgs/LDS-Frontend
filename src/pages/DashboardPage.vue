@@ -7,7 +7,7 @@
       <div class="welcome-content">
         <div class="welcome-label">
           <span class="welcome-dot"></span>
-          Welcome!
+          {{ officeView ? "Office Overview" : "Welcome!" }}
         </div>
 
         <h1>
@@ -432,6 +432,13 @@ import { defineComponent, ref } from "vue";
 
 export default defineComponent({
   name: "DashboardPage",
+
+  props: {
+    officeView: {
+      type: Boolean,
+      default: false,
+    },
+  },
 
   setup() {
     const userName = ref("Admin");

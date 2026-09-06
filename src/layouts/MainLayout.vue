@@ -15,25 +15,6 @@
           </div>
         </div>
 
-        <!-- Notifications -->
-        <!-- <q-btn
-          flat
-          round
-          dense
-          icon="notifications_none"
-          class="notification-btn"
-        >
-          <q-badge
-            v-if="notificationCount"
-            floating
-            rounded
-            color="negative"
-            :label="notificationCount"
-          />
-
-          <q-tooltip> Notifications </q-tooltip>
-        </q-btn> -->
-
         <!-- User -->
         <q-btn flat no-caps class="header-user q-px-md">
           <q-avatar class="header-avatar">
@@ -71,41 +52,59 @@
         </div>
 
         <!-- =================================================
-             NAVIGATION
+             NAVIGATION for hr_admin
         ================================================== -->
         <q-scroll-area class="navigation-scroll">
           <div class="navigation">
-            <!-- Overview -->
-            <div class="nav-section">OVERVIEW</div>
 
-            <q-item clickable v-ripple :to="{ name: 'dashboard' }" exact class="nav-item"
-              active-class="nav-item-active">
-              <q-item-section avatar>
-                <q-icon name="dashboard" />
-              </q-item-section>
+            <template v-if="isOfficeAdmin">
+              <div class="nav-section">OFFICE</div>
 
-              <q-item-section> Dashboard </q-item-section>
-            </q-item>
+              <q-item clickable v-ripple :to="{ name: 'office-dashboard' }" class="nav-item"
+                active-class="nav-item-active">
+                <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
+                <q-item-section>Dashboard</q-item-section>
+              </q-item>
 
-            <!-- Learning -->
-            <div class="nav-section">LEARNING</div>
+              <q-item clickable v-ripple :to="{ name: 'office-events' }" class="nav-item"
+                active-class="nav-item-active">
+                <q-item-section avatar><q-icon name="event" /></q-item-section>
+                <q-item-section>Events</q-item-section>
+              </q-item>
+            </template>
+          
 
-            <q-item clickable v-ripple :to="{ name: 'events' }" class="nav-item" active-class="nav-item-active">
-              <q-item-section avatar>
-                <q-icon name="event" />
-              </q-item-section>
+            <template v-if="isHrAdmin">
+              <!-- Overview -->
+              <div class="nav-section">OVERVIEW</div>
 
-              <q-item-section> Events </q-item-section>
-            </q-item>
+              <q-item clickable v-ripple :to="{ name: dashboardRoute }" exact class="nav-item"
+                active-class="nav-item-active">
+                <q-item-section avatar>
+                  <q-icon name="dashboard" />
+                </q-item-section>
 
-            <q-item clickable v-ripple :to="{ name: 'bpm' }" class="nav-item" active-class="nav-item-active">
+                <q-item-section> Dashboard </q-item-section>
+              </q-item>
+
+              <!-- Learning -->
+              <div class="nav-section">LEARNING</div>
+
+              <q-item clickable v-ripple :to="{ name: eventsRoute }" class="nav-item" active-class="nav-item-active">
+                <q-item-section avatar>
+                  <q-icon name="event" />
+                </q-item-section>
+
+                <q-item-section> Events </q-item-section>
+              </q-item>
+                <q-item clickable v-ripple :to="{ name: 'bpm' }" class="nav-item" active-class="nav-item-active">
               <q-item-section avatar>
                 <q-icon name="account_tree" />
               </q-item-section>
 
               <q-item-section> BPM </q-item-section>
             </q-item>
-
+            
             <q-item clickable v-ripple :to="{ name: 'assessment' }" class="nav-item" active-class="nav-item-active">
               <q-item-section avatar>
                 <q-icon name="assignment" />
@@ -121,19 +120,18 @@
 
               <q-item-section> Certification </q-item-section>
             </q-item>
+              <!-- Management -->
+              <div class="nav-section">MANAGEMENT</div>
 
-            <!-- Management -->
-            <div class="nav-section">MANAGEMENT</div>
+              <q-item clickable v-ripple :to="{ name: 'reports' }" class="nav-item" active-class="nav-item-active">
+                <q-item-section avatar>
+                  <q-icon name="bar_chart" />
+                </q-item-section>
 
-            <q-item clickable v-ripple :to="{ name: 'reports' }" class="nav-item" active-class="nav-item-active">
-              <q-item-section avatar>
-                <q-icon name="bar_chart" />
-              </q-item-section>
+                <q-item-section> Reports </q-item-section>
+              </q-item>
 
-              <q-item-section> Reports </q-item-section>
-            </q-item>
-
-            <!-- <q-item
+              <!-- <q-item
               clickable
               v-ripple
               :to="{ name: 'library' }"
@@ -146,83 +144,84 @@
 
               <q-item-section> Library </q-item-section>
             </q-item> -->
-            <q-expansion-item v-model="libraryExpanded" dense-toggle class="nav-expansion"
-              header-class="nav-item nav-expansion-header" expand-icon-class="nav-expansion-icon">
-              <template #header>
+              <q-expansion-item v-model="libraryExpanded" dense-toggle class="nav-expansion"
+                header-class="nav-item nav-expansion-header" expand-icon-class="nav-expansion-icon">
+                <template #header>
+                  <q-item-section avatar>
+                    <q-icon name="library_books" />
+                  </q-item-section>
+
+                  <q-item-section> Library </q-item-section>
+                </template>
+
+                <q-item clickable v-ripple :to="{ name: 'title' }" class="nav-item nav-subitem"
+                  active-class="nav-item-active">
+                  <q-item-section avatar>
+                    <q-icon name="title" />
+                  </q-item-section>
+
+                  <q-item-section> Title </q-item-section>
+                </q-item>
+
+                <q-item clickable v-ripple :to="{ name: 'mode' }" class="nav-item nav-subitem"
+                  active-class="nav-item-active">
+                  <q-item-section avatar>
+                    <q-icon name="tune" />
+                  </q-item-section>
+
+                  <q-item-section> Mode </q-item-section>
+                </q-item>
+
+                <q-item clickable v-ripple :to="{ name: 'venue' }" class="nav-item nav-subitem"
+                  active-class="nav-item-active">
+                  <q-item-section avatar>
+                    <q-icon name="place" />
+                  </q-item-section>
+
+                  <q-item-section> Venue </q-item-section>
+                </q-item>
+
+                <q-item clickable v-ripple :to="{ name: 'category' }" class="nav-item nav-subitem"
+                  active-class="nav-item-active">
+                  <q-item-section avatar>
+                    <q-icon name="category" />
+                  </q-item-section>
+
+                  <q-item-section> Category </q-item-section>
+                </q-item>
+
+                <q-item clickable v-ripple :to="{ name: 'type' }" class="nav-item nav-subitem"
+                  active-class="nav-item-active">
+                  <q-item-section avatar>
+                    <q-icon name="event_note" />
+                  </q-item-section>
+
+                  <q-item-section> Type </q-item-section>
+                </q-item>
+
+
+
+                <q-item clickable v-ripple :to="{ name: 'speaker' }" class="nav-item nav-subitem"
+                  active-class="nav-item-active">
+                  <q-item-section avatar>
+                    <q-icon name="person" />
+                  </q-item-section>
+                  <q-item-section> Speaker </q-item-section>
+                </q-item>
+              </q-expansion-item>
+
+
+              <q-item clickable v-ripple :to="{ name: 'users' }" class="nav-item" active-class="nav-item-active">
                 <q-item-section avatar>
-                  <q-icon name="library_books" />
+                  <q-icon name="manage_accounts" />
                 </q-item-section>
 
-                <q-item-section> Library </q-item-section>
-              </template>
-
-              <q-item clickable v-ripple :to="{ name: 'title' }" class="nav-item nav-subitem"
-                active-class="nav-item-active">
-                <q-item-section avatar>
-                  <q-icon name="title" />
-                </q-item-section>
-
-                <q-item-section> Title </q-item-section>
+                <q-item-section> User </q-item-section>
               </q-item>
+            </template>
 
-              <q-item clickable v-ripple :to="{ name: 'mode' }" class="nav-item nav-subitem"
-                active-class="nav-item-active">
-                <q-item-section avatar>
-                  <q-icon name="tune" />
-                </q-item-section>
-
-                <q-item-section> Mode </q-item-section>
-              </q-item>
-
-              <q-item clickable v-ripple :to="{ name: 'venue' }" class="nav-item nav-subitem"
-                active-class="nav-item-active">
-                <q-item-section avatar>
-                  <q-icon name="place" />
-                </q-item-section>
-
-                <q-item-section> Venue </q-item-section>
-              </q-item>
-
-              <q-item clickable v-ripple :to="{ name: 'category' }" class="nav-item nav-subitem"
-                active-class="nav-item-active">
-                <q-item-section avatar>
-                  <q-icon name="category" />
-                </q-item-section>
-
-                <q-item-section> Category </q-item-section>
-              </q-item>
-              
-              <q-item clickable v-ripple :to="{ name: 'type' }" class="nav-item nav-subitem"
-                active-class="nav-item-active">
-                <q-item-section avatar>
-                  <q-icon name="event_note" />
-                </q-item-section>
-
-                <q-item-section> Type </q-item-section>
-              </q-item>
-
-
-              
-              <q-item clickable v-ripple :to="{ name: 'speaker' }" class="nav-item nav-subitem"
-                active-class="nav-item-active">
-                <q-item-section avatar>
-                  <q-icon name="person" />
-                </q-item-section>
-                <q-item-section> Speaker </q-item-section>
-              </q-item>
-            </q-expansion-item>
-
-            
-
-
-            <q-item clickable v-ripple :to="{ name: 'users' }" class="nav-item" active-class="nav-item-active">
-              <q-item-section avatar>
-                <q-icon name="manage_accounts" />
-              </q-item-section>
-
-              <q-item-section> User </q-item-section>
-            </q-item>
           </div>
+
         </q-scroll-area>
 
         <!-- =================================================
@@ -274,6 +273,16 @@ export default defineComponent({
       return role ? role.charAt(0).toUpperCase() + role.slice(1) : "Employee";
     });
 
+
+    const isOfficeAdmin = computed(() => authStore.roles?.includes("office_admin"));
+    const isHrAdmin = computed(() => authStore.roles?.includes("hr_admin"));
+    const dashboardRoute = computed(() =>
+      isOfficeAdmin.value ? "office-dashboard" : "dashboard"
+    );
+    const eventsRoute = computed(() =>
+      isOfficeAdmin.value ? "office-events" : "events"
+    );
+
     const notificationCount = ref(3);
 
     const userInitials = computed(() => {
@@ -319,9 +328,14 @@ export default defineComponent({
       notificationCount,
       libraryExpanded,
       toggleLeftDrawer,
+      dashboardRoute,
+      eventsRoute,
 
       goToProfile,
       goToSettings,
+
+      isOfficeAdmin,
+      isHrAdmin,
       logout,
     };
   },
@@ -341,11 +355,18 @@ export default defineComponent({
    HEADER
 ========================================================= */
 
+/* .app-header {
+  background: #ffffff;
+  color: #172b3a;
+  border-bottom: 1px solid #e6eee8;
+  box-shadow: 0 2px 12px rgba(24, 67, 40, 0.05);
+} */
 .app-header {
   background: #ffffff;
   color: #172b3a;
   border-bottom: 1px solid #e6eee8;
   box-shadow: 0 2px 12px rgba(24, 67, 40, 0.05);
+  /* TANGGALIN: position: fixed; top: 0; left: 0; right: 0; width: 100vw; */
 }
 
 .app-toolbar {
