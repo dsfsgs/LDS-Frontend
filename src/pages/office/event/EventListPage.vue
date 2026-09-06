@@ -11,146 +11,78 @@
     </section>
 
     <!-- =====================================================
-         EVENTS CARD LIST
+         EVENTS TABLE CARD
     ====================================================== -->
     <q-card flat class="events-card">
       <!-- ===================================================
            FILTERS
       ==================================================== -->
       <div class="filter-section">
-        <q-input
-          v-model="search"
-          outlined
-          dense
-          clearable
-          placeholder="Search by event name, venue, or status..."
-          class="search-input"
-        >
+        <q-input v-model="search" outlined dense clearable placeholder="Search by event name" class="search-input">
           <template #prepend>
             <q-icon name="search" />
           </template>
         </q-input>
 
         <div class="status-filters">
-          <q-checkbox
-            v-for="option in STATUS_OPTIONS"
-            :key="option.value"
-            v-model="selectedStatuses"
-            :val="option.value"
-            :label="option.label"
-            dense
-            class="status-checkbox"
-          />
+          <q-checkbox v-for="option in STATUS_OPTIONS" :key="option.value" v-model="selectedStatuses"
+            :val="option.value" :label="option.label" dense class="status-checkbox" />
         </div>
 
-        <q-btn
-          flat
-          no-caps
-          icon="filter_alt_off"
-          label="Clear"
-          class="clear-btn"
-          @click="clearFilters"
-        />
+        <q-btn flat no-caps icon="filter_alt_off" label="Clear" class="clear-btn" @click="clearFilters" />
       </div>
 
       <!-- ===================================================
-           LOADING STATE
+           TABLE
       ==================================================== -->
-      <div v-if="officeEventStore.loading" class="loading-state">
-        Loading events...
-      </div>
+      <q-table flat :rows="filteredRows" :columns="columns" row-key="scheduleId" :loading="officeEventStore.loading"
+        v-model:pagination="pagination" class="events-table">
+        <!-- Body rows -->
+        <template #body="props">
+          <q-tr :props="props" class="event-row">
+            <q-td key="title_name" :props="props">
+              <div class="event-item">{{ props.row.title_name }}</div>
+            </q-td>
+            <q-td key="dateRange" :props="props">
 
-      <!-- ===================================================
-           CARD LIST (job-listing style)
-      ==================================================== -->
-      <div v-else class="event-list">
-        <q-card
-          v-for="event in filteredRows"
-          :key="event.scheduleId"
-          flat
-          bordered
-          class="event-card"
-          @click="goToEvent(event.event_id)"
-        >
-          <div class="card-top">
-            <div class="event-title">{{ event.title_name }}</div>
-            <span
-              class="status-badge"
-              :class="'status-' + event.computedStatus"
-            >
-              {{ event.computedStatus }}
-            </span>
-          </div>
+              <div class="event-item"> {{ props.row.dateRange }}</div>
+            </q-td>
 
-          <!-- <div class="event-sub">Created {{ event.created_at }}</div> -->
+            <q-td key="hours" :props="props">
+              <div class="event-item"> {{ props.row.hours }}</div>
 
-          <div class="event-meta">
-            <span>{{ event.venue }}</span>
-            <span class="dot">•</span>
-            <span>{{ event.mode_name }}</span>
-            <!-- <span class="dot">•</span>
-            <span>{{ event.fee }}</span> -->
-            <span class="dot">•</span>
-            <span>{{ event.dateRange }}</span>
-          </div>
+            </q-td>
+            <q-td key="category_name" :props="props">
+              <div class="event-item"> {{ props.row.category_name }}</div>
 
-          <div class="tag-row">
-            <span class="tag" v-if="event.type_name">{{ event.type_name }}</span>
-            <span class="tag" v-if="event.category_name">{{ event.category_name }}</span>
-          </div>
+            </q-td>
 
-          <div class="card-actions">
-            <a class="see-more" @click.stop="toggleExpand(event.scheduleId)">
-              {{ isExpanded(event.scheduleId) ? "See Less" : "See More" }}
-            </a>
-          </div>
 
-          <!-- Expanded: extra details for this specific schedule -->
-          <!-- <div v-if="isExpanded(event.scheduleId)" class="schedule-list">
-            <div class="schedule-item">
-              <div class="schedule-line">
-                <strong>Hours:</strong> {{ event.hours }}
-              </div>
-              <div class="schedule-line">
-                <strong>Qualifications:</strong> {{ event.qualifications }}
-              </div>
-              <div class="schedule-line">
-                <strong>Conducted by:</strong> {{ event.conducted_by }}
-              </div>
-              <div class="schedule-line">
-                <strong>Source:</strong> {{ event.source_name }}
-              </div>
-              <div class="schedule-office" v-if="event.offices.length">
-                {{ event.offices.join(", ") }}
-              </div>
-            </div>
-          </div> -->
-        </q-card>
+            <q-td key="computedStatus" :props="props">
+              <span class="status-badge" :class="'status-' + props.row.computedStatus">
+                {{ props.row.computedStatus }}
+              </span>
+            </q-td>
 
-        <!-- EMPTY STATE -->
-        <div v-if="!filteredRows.length" class="table-empty">
-          No events found.
-        </div>
-      </div>
+            <q-td key="action" :props="props">
+              <q-btn dense flat no-caps color="green" icon="visibility" class="view-btn"
+                @click="goToEvent(props.row.scheduleId)" />
+            </q-td>
+          </q-tr>
+        </template>
 
-      <!-- ===================================================
-           FOOTER
-      ==================================================== -->
-      <div class="table-footer">
-        <span>
-          Showing
-          <strong>{{ filteredRows.length }}</strong>
-          of
-          <strong>{{ totalCount }}</strong>
-          schedules
-        </span>
-      </div>
+        <!-- Empty state -->
+        <template #no-data>
+          <div class="table-empty">No events found.</div>
+        </template>
+      </q-table>
     </q-card>
   </q-page>
 </template>
 
 <script>
 import { defineComponent, computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
 import { useOfficeEventStore } from "src/stores/office/event/eventStore";
 
@@ -162,15 +94,33 @@ const STATUS_OPTIONS = [
   { label: "Complete", value: "completed" },
 ];
 
+// Table column definitions
+const COLUMNS = [
+  { name: "title_name", label: "Event", field: "title_name", align: "left", sortable: true },
+
+  { name: "dateRange", label: "Date", field: "dateRange", align: "left" },
+  { name: "hours", label: "Hours", field: "hours", align: "left", sortable: true },
+  { name: "category_name", label: "Type of Training", field: "category_name", align: "left", sortable: true },
+  { name: "computedStatus", label: "Status", field: "computedStatus", align: "left", sortable: true },
+  { name: "action", label: "Action", field: "action", align: "left" },
+];
+
 export default defineComponent({
   name: "EventListPage",
 
   setup() {
     const officeEventStore = useOfficeEventStore();
+    const router = useRouter();
 
     const search = ref("");
     const selectedStatuses = ref([]);
-    const expandedIds = ref(new Set());
+
+    const pagination = ref({
+      sortBy: "title_name",
+      descending: false,
+      page: 1,
+      rowsPerPage: 10,
+    });
 
     // ---------------------------------------------------------------
     // Helpers
@@ -185,7 +135,7 @@ export default defineComponent({
     // The API returns a FLAT array — one row per schedule, each with
     // its own nested `event` object. Rows can share the same event_id
     // (same event, different schedule) — but each is still its OWN
-    // card, since the schedule details (dates, venue, fee, etc.)
+    // row, since the schedule details (dates, venue, fee, etc.)
     // differ per row.
     // ---------------------------------------------------------------
     const cardEvents = computed(() => {
@@ -246,26 +196,10 @@ export default defineComponent({
     }
 
     // ---------------------------------------------------------------
-    // Expand / collapse "See More"
-    // ---------------------------------------------------------------
-    function toggleExpand(eventId) {
-      const next = new Set(expandedIds.value);
-      if (next.has(eventId)) next.delete(eventId);
-      else next.add(eventId);
-      expandedIds.value = next;
-    }
-
-    function isExpanded(eventId) {
-      return expandedIds.value.has(eventId);
-    }
-
-    // ---------------------------------------------------------------
     // Navigation — adjust route name/params to match your router
     // ---------------------------------------------------------------
-    function goToEvent(eventId) {
-      // Example:
-      // router.push({ name: "event-details", params: { id: eventId } });
-      console.log("go to event", eventId);
+    function goToEvent(scheduleId) {
+      router.push({ name: "office-event-view", params: { scheduleId } });
     }
 
     onMounted(() => {
@@ -278,12 +212,13 @@ export default defineComponent({
       search,
       selectedStatuses,
       STATUS_OPTIONS,
+      columns: COLUMNS,
+      pagination,
+
       filteredRows,
       totalCount,
       clearFilters,
 
-      toggleExpand,
-      isExpanded,
       goToEvent,
     };
   },
@@ -389,10 +324,64 @@ export default defineComponent({
 }
 
 /* =========================================================
-   LOADING / EMPTY
+   TABLE
 ========================================================= */
 
-.loading-state,
+.events-table {
+  font-size: 12px;
+    color: #000000;
+    
+}
+
+.events-table :deep(thead th) {
+height: 48px;
+
+  color: #2b2e31;
+
+  background: #ffffff;
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.events-table :deep(tbody td) {
+  color: #425b68;
+  font-size: 12px;
+    height: 68px;
+
+}
+
+.event-row {
+  transition: background-color 0.15s ease;
+}
+
+.event-row:hover {
+  background: #fafcfa;
+}
+
+.event-title {
+  color: #070808;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+
+}
+
+/* =========================================================
+   ACTION / VIEW BUTTON
+========================================================= */
+
+.view-btn {
+  color: #2b6cb0;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
 .table-empty {
   padding: 30px 0;
   text-align: center;
@@ -401,145 +390,10 @@ export default defineComponent({
 }
 
 /* =========================================================
-   EVENT LIST / CARDS  (job-listing style)
-========================================================= */
-
-.event-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px 20px;
-}
-
-.event-card {
-  padding: 16px 18px;
-  border: 1px solid #edf1ef;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
-}
-
-.event-card:hover {
-  border-color: #d7e6da;
-  box-shadow: 0 4px 14px rgba(30, 70, 42, 0.07);
-}
-
-.card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.event-title {
-  color: #19354a;
-  font-size: 14px;
-  font-weight: 750;
-  line-height: 1.35;
-}
-
-.event-sub {
-  margin-top: 4px;
-  color: #8a989e;
-  font-size: 10.5px;
-  font-style: italic;
-}
-
-.event-meta {
-  margin-top: 8px;
-  color: #425b68;
-  font-size: 11.5px;
-}
-
-.event-meta .dot {
-  margin: 0 6px;
-  color: #c3ccd0;
-}
-
-/* =========================================================
-   TAGS
-========================================================= */
-
-.tag-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.tag {
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: #f1f4f2;
-  color: #46595f;
-  font-size: 10px;
-  font-weight: 600;
-}
-
-/* =========================================================
-   CARD ACTIONS
-========================================================= */
-
-.card-actions {
-  margin-top: 8px;
-}
-
-.see-more {
-  color: #2b6cb0;
-  font-size: 11px;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.see-more:hover {
-  text-decoration: underline;
-}
-
-/* =========================================================
-   EXPANDED SCHEDULE LIST
-========================================================= */
-
-.schedule-list {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed #e3e9e6;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.schedule-item {
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: #fafcfa;
-}
-
-.schedule-line {
-  color: #19354a;
-  font-size: 11.5px;
-}
-
-.schedule-sub {
-  margin-top: 4px;
-  color: #718089;
-  font-size: 10.5px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.schedule-office {
-  margin-top: 4px;
-  color: #8a989e;
-  font-size: 10px;
-}
-
-/* =========================================================
    STATUS BADGE
 ========================================================= */
 
-.status-badge {
+/* .status-badge {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
@@ -549,11 +403,6 @@ export default defineComponent({
   letter-spacing: 0.2px;
   text-transform: uppercase;
   white-space: nowrap;
-}
-
-.status-badge.small {
-  padding: 2px 8px;
-  font-size: 8px;
 }
 
 .status-created {
@@ -574,34 +423,25 @@ export default defineComponent({
 .status-completed {
   color: #5c6b73;
   background: #eef1f2;
-}
+} */
 
-.status-cancelled {
+/* .status-cancelled {
   color: #c73f3f;
   background: #fbe9e9;
-}
+} */
 
-/* =========================================================
-   TABLE FOOTER
-========================================================= */
+.event-item {
+  color: #0b0d0e;
 
-.table-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 13px 20px;
-  border-top: 1px solid #edf1ef;
-  color: #87949a;
-  font-size: 10px;
-}
+  font-size: 11px;
+  font-weight: 500;
 
-.table-footer strong {
-  color: #405967;
 }
 
 /* =========================================================
    RESPONSIVE
 ========================================================= */
+
 
 @media (max-width: 900px) {
   .filter-section {

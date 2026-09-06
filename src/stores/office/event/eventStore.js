@@ -1,14 +1,17 @@
 import { defineStore } from "pinia";
 
-import { office_event_list, office_event_view } from "src/service/office/event/eventService";
+import {
+
+  office_event_list,
+  office_event_view,
+
+} from "src/service/office/event/eventService";
 
 export const useOfficeEventStore = defineStore("officeEvent", {
   state: () => ({
     officeEvents: [],
     loading: false,
     error: null,
-   
-
   }),
 
   actions: {
@@ -31,6 +34,7 @@ export const useOfficeEventStore = defineStore("officeEvent", {
         this.loading = false;
       }
     },
+
     async view_office_event(scheduleId) {
       this.loading = true;
       this.error = null;
@@ -57,6 +61,5 @@ export const useOfficeEventStore = defineStore("officeEvent", {
         this.loading = false;
       }
     },
-   
   }
 });

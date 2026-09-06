@@ -9,3 +9,4 @@ export const office_event_list = () => {
 export const office_event_view = (scheduleId) => {
   return api.get(`office/event/view-event/${scheduleId}`);
 };
+

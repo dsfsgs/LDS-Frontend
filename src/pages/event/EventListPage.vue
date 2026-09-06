@@ -5,9 +5,9 @@
     ====================================================== -->
     <section class="page-header">
       <div>
-        <h5>{{ officeView ? "Office Events" : "Event Management list" }}</h5>
+        <h5>{{ "Event Management list" }}</h5>
 
-        <p>{{ officeView ? "View learning and development events for your office." : "Manage learning and development events and their schedules." }}</p>
+        <p>{{"Manage learning and development events and their schedules." }}</p>
       </div>
 
       <q-btn
@@ -61,8 +61,8 @@
           :rows="filteredRows"
           :columns="columns"
           row-key="event_id"
-          hide-pagination
-          :rows-per-page-options="[0]"
+     
+          :rows-per-page-options="[0,2,10,40,100]"
           :loading="eventStore.loading"
           class="events-table"
         >
@@ -74,10 +74,16 @@
             </q-td>
           </template>
 
+        <template #body-cell-schedule="props">
+      <q-td :props="props">
+        <span class="event-name">{{ props.row.latest_schedule }}</span>
+      </q-td>
+    </template>
+
           <!-- STATUS -->
           <template #body-cell-status="props">
             <q-td :props="props">
-              <span class="status-badge" :class="(props.row.computedStatus)">
+                  <span class="status-badge" :class="'status-' + props.row.computedStatus">
                 {{ props.row.computedStatus }}
               </span>
             </q-td>
@@ -137,15 +143,7 @@
       <!-- ===================================================
            TABLE FOOTER
       ==================================================== -->
-      <div class="table-footer">
-        <span>
-          Showing
-          <strong>{{ filteredRows.length }}</strong>
-          of
-          <strong>{{ eventStore.events.length }}</strong>
-          events
-        </span>
-      </div>
+
     </q-card>
 
     <!-- =====================================================
@@ -187,55 +185,9 @@
               class="col-span-2"
             />
 
-            <!-- <q-input v-model="form.source_name" outlined dense label="Source" />
-
-            <q-input v-model="form.type_name" outlined dense label="Type" />
-
-            <q-input v-model="form.hours" outlined dense label="Hours" />
-
-            <q-input v-model="form.fee" outlined dense label="Fee" />
-
-            <q-input
-              v-model="form.qualifications"
-              outlined
-              dense
-              label="Qualifications"
-              class="col-span-2"
-            /> -->
           </div>
 
-          <!-- <div class="section-label">Schedule</div> -->
-
-          <!-- <div class="form-grid">
-            <q-input
-              v-model="form.venue_name"
-              outlined
-              dense
-              label="Venue"
-              class="col-span-2"
-            />
-
-            <q-input v-model="form.mode_name" outlined dense label="Mode" />
-
-            <q-input
-              v-model="form.latest_schedule"
-              outlined
-              dense
-              label="Schedule Date"
-              hint="e.g. December 20, 2026"
-            />
-
-            <q-select
-              v-model="form.computedStatus"
-              outlined
-              dense
-              emit-value
-              map-options
-              label="Status"
-              :options="computedStatus"
-              class="col-span-2"
-            />
-          </div> -->
+       
         </q-card-section>
 
         <q-card-actions align="right" class="dialog-actions">
@@ -313,7 +265,7 @@ export default defineComponent({
     // Table
     // ---------------------------------------------------------------
     const columns = [
-      { name: "no", label: "NO.", field: "no", align: "left" },
+      // { name: "no", label: "NO.", field: "no", align: "left" },
       {
         name: "event",
         label: "EVENT NAME",
@@ -664,11 +616,11 @@ export default defineComponent({
 .events-table :deep(th) {
   height: 48px;
 
-  color: #819097;
+  color: #2b2e31;
 
   background: #ffffff;
 
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.3px;
 }
@@ -702,10 +654,10 @@ export default defineComponent({
 ========================================================= */
 
 .event-name {
-  color: #19354a;
+  color: #0b0d0e;
 
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .event-meta {
@@ -716,43 +668,6 @@ export default defineComponent({
   font-size: 9px;
 }
 
-/* =========================================================
-   STATUS BADGE
-========================================================= */
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-
-  padding: 4px 10px;
-
-  border-radius: 20px;
-
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  text-transform: uppercase;
-}
-
-.status-created {
-  color: #2b6cb0;
-  background: #e7f0fb;
-}
-
-.status-ongoing {
-  color: #087c42;
-  background: #e1f7e7;
-}
-
-.status-completed {
-  color: #5c6b73;
-  background: #eef1f2;
-}
-
-.status-cancelled {
-  color: #c73f3f;
-  background: #fbe9e9;
-}
 
 /* =========================================================
    ACTIONS
@@ -762,7 +677,6 @@ export default defineComponent({
   display: flex;
   justify-content: center;
 
-  gap: 2px;
 }
 
 .action-view {
