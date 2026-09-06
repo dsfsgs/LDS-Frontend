@@ -5,7 +5,7 @@
     ====================================================== -->
     <section class="page-header">
       <div>
-        <h5>Office Events</h5>
+        <h5>Events</h5>
         <p>View learning and development events for your office</p>
       </div>
     </section>
