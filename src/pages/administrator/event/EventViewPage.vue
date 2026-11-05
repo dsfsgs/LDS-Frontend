@@ -460,12 +460,6 @@ export default defineComponent({
         fee: data.fee,
         learning_intervention: data.learning_intervention || null,
 
-        speakers: (data.speaker || []).map((s) => ({
-          name: s.speaker_name,
-          agency: s.agency,
-          position: s.position,
-        })),
-
         departments: (data.office || []).map((o) => ({
           id: o.departmentId,
           name: o.office_name,
@@ -497,13 +491,19 @@ export default defineComponent({
           const rawDate = toRawDate(schedule.schedule_date);
 
           return {
-            id: schedule.id || `${data.scheduleId}-${index}`,
+            id: schedule.schedule_date_time_id || schedule.id || `${data.scheduleId}-${index}`,
             rawDate,
             date: schedule.schedule_date || "—",
             morning_in: to24HourTime(schedule.morning_in),
             morning_out: to24HourTime(schedule.morning_out),
             afternoon_in: to24HourTime(schedule.afternoon_in),
             afternoon_out: to24HourTime(schedule.afternoon_out),
+            speakers: (schedule.speakers || []).map((speaker) => ({
+              id: speaker.speakerId ?? `${schedule.schedule_date_time_id}-${speaker.speaker_name}`,
+              name: speaker.speaker_name || "",
+              position: speaker.position || "",
+              agency: speaker.agency || "",
+            })),
           };
         }),
 
