@@ -25,11 +25,10 @@
 
     <template v-else>
       <!-- ===================================================
-           1. SCHEDULE DETAILS
+           1. SCHEDULE DETAILS  (Event | Schedule)
       ==================================================== -->
       <q-card flat bordered class="detail-card">
         <div class="section-head">
-          <!-- <span class="section-badge">1</span> -->
           <div class="section-head-text">
             <div class="section-heading">
               <q-icon name="event" class="section-icon" />
@@ -43,95 +42,95 @@
         </div>
 
         <div class="detail-body">
-          <span class="detail-label">Event</span>
-          <h6 class="event-title-lg">{{ eventInfo.title_name }}</h6>
-          <!-- <div class="event-sub">Created {{ eventInfo.created_at }}</div> -->
+          <div class="detail-split">
+            <!-- LEFT: EVENT -->
+            <div class="detail-col">
+              <span class="detail-label">Event</span>
+              <h6 class="event-title-lg">{{ eventInfo.title_name }}</h6>
 
-          <div class="detail-grid">
-            <div class="detail-item">
-              <span class="detail-label">Venue</span>
-              <span class="detail-value">{{ schedule.venue_name }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Mode</span>
-              <span class="detail-value">{{ schedule.mode_name }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Hours</span>
-              <span class="detail-value">{{ schedule.hours }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Fee</span>
-              <span class="detail-value">{{ schedule.fee }}</span>
-            </div>
-            <!-- <div class="detail-item">
-              <span class="detail-label">Qualifications</span>
-              <span class="detail-value">{{ schedule.qualifications }}</span>
-            </div> -->
-            <div class="detail-item">
-              <span class="detail-label">Type</span>
-              <span class="detail-value">{{ schedule.type_name }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Category</span>
-              <span class="detail-value">{{ schedule.category_name }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Source</span>
-              <span class="detail-value">{{ schedule.source_name }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Conducted by</span>
-              <span class="detail-value">{{ schedule.conducted_by || "—" }}</span>
-            </div>
-            <!-- <div class="detail-item" v-if="offices.length">
-              <span class="detail-label">Office</span>
-              <span class="detail-value">{{ offices.join(", ") }}</span>
-            </div> -->
-            <div class="detail-item">
-              <span class="detail-label">Qualifications</span>
-              <span class="detail-value">{{ schedule.qualifications }}</span>
-            </div>
-
-          </div>
-
-          <div class="section-label">Schedule Dates</div>
-          <div class="date-list">
-            <div v-for="d in scheduleDates" :key="d.id" class="date-item">
-              <strong>{{ d.schedule_date }}</strong>
-              <span>
-                {{ d.morning_in }}–{{ d.morning_out }} ·
-                {{ d.afternoon_in }}–{{ d.afternoon_out }}
-              </span>
-            </div>
-            <div v-if="!scheduleDates.length" class="table-empty">
-              No schedule dates.
-            </div>
-          </div>
-
-          <template v-if="speakers.length">
-            <div class="section-label">Speakers</div>
-            <div class="speaker-list">
-              <div v-for="sp in speakers" :key="sp.speakerId" class="speaker-item">
-                <strong>{{ sp.speaker_name }}</strong> — {{ sp.position }}, {{ sp.agency }}
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <span class="detail-label">Venue</span>
+                  <span class="detail-value">{{ schedule.venue_name }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Mode</span>
+                  <span class="detail-value">{{ schedule.mode_name }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Hours</span>
+                  <span class="detail-value">{{ schedule.hours }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Fee</span>
+                  <span class="detail-value">{{ schedule.fee }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Type</span>
+                  <span class="detail-value">{{ schedule.type_name }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Category</span>
+                  <span class="detail-value">{{ schedule.category_name }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Source</span>
+                  <span class="detail-value">{{ schedule.source_name }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Conducted by</span>
+                  <span class="detail-value">{{ schedule.conducted_by || "—" }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Qualifications</span>
+                  <span class="detail-value">{{ schedule.qualifications }}</span>
+                </div>
               </div>
-            </div>
-          </template>
 
-          <template v-if="competencyGroups.length">
-            <div class="section-label">Competencies</div>
-            <div class="competency-groups">
-              <div v-for="group in competencyGroups" :key="group.key" class="competency-group-block"
-                :class="'competency-' + group.color">
-                <div class="competency-group-title">{{ group.label }}</div>
-                <div class="tag-row">
-                  <span v-for="(item, i) in group.items" :key="i" class="tag">
-                    {{ item }}
-                  </span>
+              <!-- <template v-if="competencyGroups.length">
+                <div class="section-label">Competencies</div>
+                <div class="competency-groups">
+                  <div v-for="group in competencyGroups" :key="group.key" class="competency-group-block"
+                    :class="'competency-' + group.color">
+                    <div class="competency-group-title">{{ group.label }}</div>
+                    <div class="tag-row">
+                      <span v-for="(item, i) in group.items" :key="i" class="tag">
+                        {{ item }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </template> -->
+            </div>
+
+            <!-- RIGHT: SCHEDULE (dates + speakers per date) -->
+            <div class="detail-col detail-col--schedule">
+              <div class="section-label">Schedule Dates</div>
+              <div class="date-list">
+                <div v-for="d in scheduleDates" :key="d.schedule_date_time_id" class="date-item">
+                  <div class="date-head">
+                    <strong>{{ d.schedule_date }}</strong>
+                    <span>{{ formatTimes(d) }}</span>
+                  </div>
+
+                  <div class="date-speakers">
+                    <div class="date-speakers-label">Speakers</div>
+
+                    <div v-for="sp in d.speakers" :key="sp.speakerId" class="date-speaker">
+                      <strong>{{ sp.speaker_name }}</strong> — {{ sp.position }}, {{ sp.agency }}
+                    </div>
+
+                    <div v-if="!d.speakers?.length" class="date-speaker date-speaker--empty">
+                      No speaker assigned
+                    </div>
+                  </div>
+                </div>
+                <div v-if="!scheduleDates.length" class="table-empty">
+                  No schedule dates.
                 </div>
               </div>
             </div>
-          </template>
+          </div>
         </div>
       </q-card>
 
@@ -140,13 +139,11 @@
       ==================================================== -->
       <q-card flat bordered class="detail-card">
         <div class="section-head">
-          <!-- <span class="section-badge">2</span> -->
           <div class="section-head-text">
             <div class="section-heading">
               <q-icon name="groups" class="section-icon" />
               <div class="section-title">Suggested Employees</div>
             </div>
-            <!-- <div class="section-sub">Employees tagged by HRM for this event.</div> -->
             <div class="section-sub">
               Employees recommended by HRM for this event.
             </div>
@@ -155,7 +152,6 @@
 
         <q-table flat :rows="employeeTags" :columns="employeeTagColumns" row-key="id"
           :rows-per-page-options="[20, 40, 60, 80, 100]" class="app-table offices-table nominee-table">
-
 
           <template #body-cell-action="props">
             <q-td :props="props">
@@ -172,6 +168,7 @@
           </template>
         </q-table>
       </q-card>
+
       <!-- SUGGESTED EMPLOYEE — NOMINATE DIALOG -->
       <q-dialog v-model="showSuggestedDialog" persistent>
         <q-card style="width: 520px; max-width: 90vw;">
@@ -202,18 +199,11 @@
               </div>
             </div>
 
-        <div class="section-label">Reason for Nomination</div>
+            <div class="section-label">Reason for Nomination</div>
 
-        <q-input
-          ref="suggestedReasonRef"
-          v-model="suggestedReason"
-          outlined
-          type="textarea"
-          rows="5"
-          placeholder="Enter reason for nomination"
-          class="suggest-reason"
-          :rules="[val => !!val?.trim() || 'Reason is required']"
-        />
+            <q-input ref="suggestedReasonRef" v-model="suggestedReason" outlined type="textarea" rows="5"
+              placeholder="Enter reason for nomination" class="suggest-reason"
+              :rules="[val => !!val?.trim() || 'Reason is required']" />
           </q-card-section>
 
           <q-card-actions align="right" class="dialog-actions">
@@ -225,12 +215,12 @@
       </q-dialog>
 
     </template>
+
     <!-- ===================================================
-     3. NOMINATION
-==================================================== -->
+         3. NOMINATION
+    ==================================================== -->
     <q-card flat bordered class="detail-card">
       <div class="section-head">
-        <!-- <span class="section-badge">3</span> -->
         <div class="section-head-text">
           <div class="section-heading">
             <q-icon name="how_to_reg" class="section-icon" />
@@ -258,12 +248,6 @@
                   {{ props.row.is_attended ? 'Yes' : 'No' }}
                 </q-badge>
               </template>
-              <!-- <template v-else-if="col.name === 'nominate_status'">
-                <q-badge
-                  :color="props.row.nominate_status === 'approved' ? 'green' : (props.row.nominate_status === 'rejected' ? 'red' : 'orange')">
-                  {{ props.row.nominate_status}}
-                </q-badge>
-              </template> -->
               <template v-else-if="col.name === 'nominate_status'">
                 <q-badge class="status-badge" :class="{
                   'status-approved': props.row.nominate_status === 'Approved',
@@ -273,7 +257,6 @@
                   {{ props.row.nominate_status }}
                 </q-badge>
               </template>
-              <!-- ✅ NEW: truncated reason with tooltip -->
               <template v-else-if="col.name === 'nominate_reason'">
                 <span class="reason-cell">
                   {{ truncateText(props.row.nominate_reason, 24) }}
@@ -283,7 +266,6 @@
                 </span>
               </template>
               <template v-else-if="col.name === 'action'">
-
                 <div class="row-actions">
                   <q-btn flat dense round icon="visibility" color="primary"
                     @click.stop="viewNominationDetails(props.row)">
@@ -310,8 +292,8 @@
     </q-card>
 
     <!-- =====================================================
-     NOMINATION DIALOG — 3 STEPS
-====================================================== -->
+         NOMINATION DIALOG — 3 STEPS
+    ====================================================== -->
     <q-dialog v-model="showNominationDialog" persistent>
       <q-card class="nomination-dialog">
         <q-card-section class="dialog-header">
@@ -365,6 +347,7 @@
               </template>
             </q-table>
           </q-step>
+
           <!-- STEP 2: REASON PER EMPLOYEE -->
           <q-step :name="2" title="Nomination Reason" icon="edit_note" :done="nominationStep > 2">
             <div v-if="!selectedNominees.length" class="empty-state">
@@ -379,7 +362,7 @@
                   <q-td v-for="col in props.cols" :key="col.name" :props="props">
                     <template v-if="col.name === 'nominate_reason'">
                       <q-input v-model="nominationReasons[props.row.ControlNo]" dense outlined type="textarea" autogrow
-                        placeholder="Reason for nominating..."      class="suggest-reason"/>
+                        placeholder="Reason for nominating..." class="suggest-reason" />
                     </template>
                     <template v-else>
                       {{ col.value }}
@@ -452,6 +435,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
     <q-dialog v-model="showNominationDetailsDialog">
       <q-card style="width: 500px; max-width: 90vw;">
         <q-card-section class="dialog-header">
@@ -485,6 +469,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
     <q-dialog v-model="showEditReasonDialog">
       <q-card style="width: 480px; max-width: 90vw;">
         <q-card-section class="dialog-header">
@@ -507,20 +492,11 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <!-- <q-dialog v-model="showFormPreview" maximized @hide="closeFormPreview">
-      <q-card class="column no-wrap">
-        <q-bar>
-          <div>Inhouse Nomination Form</div>
-          <q-space />
-          <q-btn dense flat icon="close" v-close-popup />
-        </q-bar>
-        <iframe v-if="formPreviewUrl" :src="formPreviewUrl" style="flex: 1; width: 100%; border: 0" />
-      </q-card>
-    </q-dialog> -->
   </q-page>
 </template>
 
-<script>import { defineComponent, computed, onMounted, ref, reactive, watch } from "vue";
+<script>
+import { defineComponent, computed, onMounted, ref, reactive, watch } from "vue";
 import { useRoute } from "vue-router";
 import { Notify } from "quasar";
 
@@ -548,11 +524,11 @@ export default defineComponent({
 
     const schedule = computed(() => eventDetail.value || {});
     const eventInfo = computed(() => schedule.value.event || {});
+    // bawat date may sariling `speakers` array
     const scheduleDates = computed(() => schedule.value.schedule_date_time || []);
     const offices = computed(() =>
       (schedule.value.office || []).map((o) => o.office_name)
     );
-    const speakers = computed(() => schedule.value.speaker || []);
     const employeeTags = computed(() => schedule.value.employee_tag || []);
 
     const showEmployeeRecordDialog = ref(false);
@@ -561,29 +537,25 @@ export default defineComponent({
     const formPreviewUrl = ref("");
 
     const { isLoading: isNominationFormLoading, isAnyLoading: isAnyNominationFormLoading, run: runNominationForm } = useRowLoading();
-    // const { isLoading: isApproveLoading, isAnyLoading: isAnyApproveLoading, run: runApprove } = useRowLoading();
 
     const employeeColumns = [
       { name: "ControlNo", label: "Control No.", field: "ControlNo", align: "left" },
       { name: "name", label: "Name", field: "name", align: "left" },
-      // { name: "office", label: "Office", field: "office", align: "left" },
       { name: "position", label: "Position", field: "position", align: "left" },
       { name: "status", label: "Status", field: "status", align: "center" },
       { name: "sg", label: "SG", field: "sg", align: "center" },
       { name: "isAlreadyTrained", label: "Trained", field: "isAlreadyTrained", align: "center" },
-
       { name: "action", label: "Action", field: "action", align: "center" },
     ];
 
     const employeeTagColumns = [
       { name: "ControlNo", label: "Control No.", field: "control_no", align: "left" },
       { name: "name", label: "Name", field: "name", align: "left" },
-      // { name: "office", label: "Office", field: "office", align: "left" },
       { name: "position", label: "Position", field: "position", align: "left" },
-      // { name: "isAlreadyTrained", label: "Status", field: "isAlreadyTrained", align: "center" },
       { name: "status", label: "Status", field: "status", align: "center" },
       { name: "action", label: "Action", field: "action", align: "center" },
     ];
+
     const trainingColumns = [
       { name: "training", label: "Training", field: "training", align: "left" },
       { name: "DateFrom", label: "Date From", field: "DateFrom", align: "left" },
@@ -598,15 +570,26 @@ export default defineComponent({
       { name: "name", label: "Name", field: "name", align: "left" },
       { name: "position", label: "Position", field: "position", align: "left" },
       { name: "status", label: "Status", field: "status", align: "left" },
-      // { name: "nominate_status", label: "Nomination Status", field: "nominate_status", align: "left" },
       { name: "nominate_reason", label: "Reason", field: "nominate_reason", align: "left" },
     ];
+
     function viewEmployeeRecord(emp) {
       viewedEmployee.value = emp;
       showEmployeeRecordDialog.value = true;
     }
+
     function labelize(key) {
       return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+
+    // walang "–null" kapag walang afternoon_out, at hindi ipapakita ang slot na walang laman
+    function formatTimes(d) {
+      const slot = (a, b) => (a || b ? `${a || "—"} – ${b || "—"}` : null);
+      return (
+        [slot(d.morning_in, d.morning_out), slot(d.afternoon_in, d.afternoon_out)]
+          .filter(Boolean)
+          .join(" | ") || "No time set"
+      );
     }
 
     const competencyGroups = computed(() => {
@@ -627,6 +610,7 @@ export default defineComponent({
         })
         .filter((group) => group.items.length); // itago yung grupo kung walang true values
     });
+
     async function loadSchedule() {
       loading.value = true;
       errorMessage.value = "";
@@ -648,25 +632,25 @@ export default defineComponent({
     const showNominationDialog = ref(false);
     const nominationStep = ref(1);
     const employeeSearch = ref("");
-    const selectedNominees = ref([]);          // Step 1 output
-    const nominationReasons = reactive({});    // Step 2 output, keyed by control_no
-    const nominatedList = ref([]);             // Step 3 result / summary after save
+    const selectedNominees = ref([]); // Step 1 output
+    const nominationReasons = reactive({}); // Step 2 output, keyed by ControlNo
+    const nominatedList = ref([]); // Step 3 result / summary after save
 
     const nominatedEmployees = computed(() => employeeStore.nominatedEmployee || []);
 
     async function loadNominatedEmployees() {
       await employeeStore.fetchEmployeeListNominated(scheduleId);
     }
+
     const nominatedColumns = [
       { name: "controlNo", label: "Control No.", field: "control_no", align: "left" },
       { name: "name", label: "Name", field: "full_name", align: "left" },
-      // { name: "office", label: "Office", field: "office", align: "left" },
       { name: "designation", label: "Position", field: "designation", align: "left" },
       { name: "status", label: "Status", field: "status", align: "left" },
       { name: "nominate_status", label: "Nomination Status", field: "nominate_status", align: "center" },
-      // { name: "nominate_reason", label: "Reason", field: "nominate_reason", align: "left", style: "max-width: 200px" },
       { name: "action", label: "Action", field: "action", align: "center" },
     ];
+
     function truncateText(text, maxLength = 24) {
       if (!text) return "—";
       if (text.length <= maxLength) return text;
@@ -717,7 +701,6 @@ export default defineComponent({
     }
 
     // Prevent orphaned reasons if user goes back to Step 1 and unchecks someone
-    // watch — orphan cleanup
     watch(selectedNominees, (newVal) => {
       const validControlNos = new Set(newVal.map((e) => e.ControlNo));
       Object.keys(nominationReasons).forEach((k) => {
@@ -753,7 +736,7 @@ export default defineComponent({
         Notify.create({ type: "positive", message: result.message });
         showNominationDialog.value = false;
         resetNominationDialog();
-        await loadNominatedEmployees();   // ✅ i-refresh yung table matapos mag-nominate
+        await loadNominatedEmployees(); // i-refresh yung table matapos mag-nominate
       } else {
         Notify.create({ type: "negative", message: result.message });
       }
@@ -782,7 +765,7 @@ export default defineComponent({
         Notify.create({
           type: "negative",
           message: "Reason is required.",
-          position: "top", // ✅
+          position: "top",
         });
         return;
       }
@@ -796,7 +779,7 @@ export default defineComponent({
         Notify.create({
           type: "positive",
           message: result.message,
-          position: "top", // ✅
+          position: "top",
         });
         showEditReasonDialog.value = false;
         await loadNominatedEmployees();
@@ -804,10 +787,11 @@ export default defineComponent({
         Notify.create({
           type: "negative",
           message: result.message,
-          position: "top", // ✅
+          position: "top",
         });
       }
     }
+
     function deleteNominatedEmployee(row) {
       Swal.fire({
         title: "Remove Nomination",
@@ -858,6 +842,7 @@ export default defineComponent({
         }
       });
     }
+
     function closeFormPreview() {
       if (formPreviewUrl.value) {
         URL.revokeObjectURL(formPreviewUrl.value.split("#")[0]);
@@ -865,33 +850,12 @@ export default defineComponent({
       formPreviewUrl.value = "";
     }
 
-    // async function inHouseNominationPreview() {
-    //   const result = await formStore.fetchInhouseNomination(
-    //     eventInfo.value.event_id,
-    //     scheduleId
-    //   );
-
-    //   if (!result.success) {
-    //     Swal.fire({
-    //       title: "Failed",
-    //       text: result.message || "Unable to preview nomination form.",
-    //       icon: "error",
-    //       scrollbarPadding: false,
-    //     });
-    //     return;
-    //   }
-
-    //   closeFormPreview();
-    //   const blobUrl = URL.createObjectURL(
-    //     new Blob([result.blob], { type: "application/pdf" })
-    //   );
-    //   formPreviewUrl.value = `${blobUrl}#zoom=60`;
-    //   showFormPreview.value = true;
-    // }
     async function inHouseNominationPreview() {
       return runNominationForm(scheduleId, async () => {
-        const result = await formStore.fetchInhouseNomination(eventInfo.value.event_id,
-          scheduleId);
+        const result = await formStore.fetchInhouseNomination(
+          eventInfo.value.event_id,
+          scheduleId
+        );
 
         if (result.success) {
           const url = window.URL.createObjectURL(
@@ -907,8 +871,8 @@ export default defineComponent({
           });
         }
       });
-
     }
+
     // =====================================================
     // SUGGESTED EMPLOYEE — single nominate flow
     // =====================================================
@@ -916,7 +880,6 @@ export default defineComponent({
     const suggestedEmployee = ref(null);
     const suggestedReason = ref("");
     const suggestedReasonRef = ref(null);
-
 
     function isAlreadyNominated(row) {
       return nominatedEmployees.value.some(
@@ -996,11 +959,11 @@ export default defineComponent({
       eventInfo,
       scheduleDates,
       offices,
-      speakers,
       employeeTags,
       employeeColumns,
       competencyGroups,
       employeeTagColumns,
+      formatTimes,
 
       showNominationDialog,
       nominationStep,
@@ -1016,7 +979,6 @@ export default defineComponent({
       goToNextStep,
       submitNomination,
 
-
       reasonColumns,
       showEmployeeRecordDialog,
       viewedEmployee,
@@ -1029,9 +991,10 @@ export default defineComponent({
       // actions
       deleteNominatedEmployee,
 
-      // function helper 
+      // function helper
       truncateText,
-      // dialog 
+
+      // dialog
       showNominationDetailsDialog,
       viewedNomination,
       viewNominationDetails,
@@ -1058,7 +1021,6 @@ export default defineComponent({
       openSuggestedDialog,
       closeSuggestedDialog,
       confirmSuggestedNomination,
-
     };
   },
 });
@@ -1135,7 +1097,6 @@ export default defineComponent({
   border-radius: 13px;
   background: #ffffff;
   box-shadow: 0 3px 12px rgba(30, 70, 42, 0.055);
-
 }
 
 .section-head {
@@ -1166,10 +1127,9 @@ export default defineComponent({
 
 .section-title {
   color: #19354a;
-   font-size: 16px;
+  font-size: 16px;
   font-weight: 750;
 }
-
 
 /* =========================================================
    SECTION 1 — SCHEDULE DETAILS
@@ -1351,47 +1311,6 @@ export default defineComponent({
 }
 
 /* =========================================================
-   STATUS BADGE
-========================================================= */
-
-/* .status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.status-created {
-  color: #2b6cb0;
-  background: #e7f0fb;
-}
-
-.status-up-coming {
-  color: #b8860b;
-  background: #fbf3df;
-}
-
-.status-ongoing {
-  color: #087c42;
-  background: #e1f7e7;
-}
-
-.status-completed {
-  color: #5c6b73;
-  background: #eef1f2;
-}
-
-.status-cancelled {
-  color: #c73f3f;
-  background: #fbe9e9;
-} */
-
-/* =========================================================
    SECTIONS 2 & 3 — TABLES
 ========================================================= */
 
@@ -1477,7 +1396,6 @@ export default defineComponent({
   box-shadow: 0 6px 14px rgba(10, 63, 214, 0.16);
 }
 
-
 .dialog-header {
   padding: 16px 20px;
 }
@@ -1526,9 +1444,6 @@ export default defineComponent({
   border-top: 1px solid #edf1ef;
 }
 
-/* .save-dialog-btn{
-  color: #000;
-} */
 .reason-cell {
   cursor: help;
 }
@@ -1654,14 +1569,11 @@ export default defineComponent({
   font-size: 19px;
 }
 
-
-
 .section-sub {
   margin-top: 3px;
   margin-left: 28px;
   font-size: 14px;
   color: #585c5e;
-
 }
 
 .detail-body {
@@ -1740,7 +1652,6 @@ export default defineComponent({
 }
 
 .detail-table :deep(thead th) {
-
   font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.45px;
@@ -1755,7 +1666,6 @@ export default defineComponent({
 .detail-table :deep(tbody tr:hover) {
   background: #f8fbfd;
 }
-
 
 .nominate-btn,
 .nominate-form-btn {
@@ -1918,10 +1828,117 @@ export default defineComponent({
   padding: 12px 10px;
   font-size: 13px;
   line-height: 1.5;
-  resize: vertical; /* yung // handle sa kanang-ibaba */
+  resize: vertical;
 }
 
 .suggest-reason :deep(textarea.q-field__native::placeholder) {
   color: #8a989e;
+}
+
+/* =========================================================
+   SCHEDULE DATES + SPEAKERS PER DATE
+   (nasa dulo para ma-override ang naka-flex row na .date-item sa taas)
+========================================================= */
+
+.date-item {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.date-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.date-speakers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e9ee;
+}
+
+.date-speakers-label {
+  color: #607987;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.date-speaker {
+  padding: 12px 14px;
+  border: 1px solid #e5ebef;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #2c3e4a;
+  font-size: 12px;
+}
+
+.date-speaker strong {
+  color: #172431;
+}
+
+.date-speaker--empty {
+  color: #94a3ab;
+  font-style: italic;
+}
+
+@media (max-width: 650px) {
+  .date-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .date-head span {
+    text-align: left;
+  }
+}
+
+/* =========================================================
+   EVENT | SCHEDULE — dalawang column
+   (nasa pinakadulo para hindi ma-override ng naunang .detail-grid rules)
+========================================================= */
+
+.detail-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.detail-col {
+  min-width: 0;
+}
+
+/* sa loob ng kalahating column, 2 ang column ng detail items */
+.detail-split .detail-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* walang sobrang espasyo sa taas ng "Schedule Dates" */
+.detail-col--schedule .section-label:first-child {
+  margin-top: 0;
+}
+
+@media (max-width: 1000px) {
+  .detail-split {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .detail-col--schedule .section-label:first-child {
+    margin-top: 24px;
+  }
+}
+
+@media (max-width: 420px) {
+  .detail-split .detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 </style>
