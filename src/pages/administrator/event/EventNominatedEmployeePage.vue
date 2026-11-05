@@ -107,24 +107,23 @@
                     <q-btn outline dense no-caps icon="print" label="Print Attendance" class="print-btn"
                       :loading="isAttendanceLoading(d.schedule_date_time_id)" :disable="isAnyAttendanceLoading()"
                       @click="printAttendance(d)" />
+                  </div>
 
-
-
+                  <!-- Speakers ng date na ito -->
+                  <div class="date-speakers">
+                    <span class="detail-label">Speakers</span>
+                    <div v-if="d.speakers.length" class="speaker-list">
+                      <div v-for="sp in d.speakers" :key="sp.speakerId" class="speaker-item">
+                        <strong>{{ sp.speaker_name }}</strong> — {{ sp.position }}, {{ sp.agency }}
+                      </div>
+                    </div>
+                    <span v-else class="assessment-empty">No speaker assigned</span>
                   </div>
                 </div>
-                <div v-if="!scheduleDates.length" class="table-empty">
-                  No schedule dates.
-                </div>
+                <div v-if="!scheduleDates.length" class="table-empty">No schedule dates.</div>
               </div>
 
-              <template v-if="speakers.length">
-                <div class="section-label">Speakers</div>
-                <div class="speaker-list">
-                  <div v-for="sp in speakers" :key="sp.speakerId" class="speaker-item">
-                    <strong>{{ sp.speaker_name }}</strong> — {{ sp.position }}, {{ sp.agency }}
-                  </div>
-                </div>
-              </template>
+
 
               <template v-if="competencyGroups.length">
                 <div class="section-label">Competencies</div>
@@ -218,6 +217,54 @@
     <!-- ===================================================
          2. NOMINATION
     ==================================================== -->
+    <section class="statistics-grid">
+      <!-- Total -->
+      <q-card flat class="stat-card">
+        <div class="stat-icon stat-icon-green">
+          <q-icon name="groups" size="26px" />
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Total employees for nomination</div>
+          <div class="stat-value">{{ stats.total }}</div>
+        </div>
+      </q-card>
+      <!-- Pending -->
+      <q-card flat class="stat-card stat-card-link" :class="{ 'is-active': selectedStatus === 'Pending' }" v-ripple
+        @click="toggleStatus('Pending')">
+        <div class="stat-icon stat-icon-yellow">
+          <q-icon name="hourglass_empty" size="26px" />
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value">{{ stats.pending }}</div>
+        </div>
+      </q-card>
+      <!-- Approved -->
+      <q-card flat class="stat-card stat-card-link" :class="{ 'is-active': selectedStatus === 'Approved' }" v-ripple
+        @click="toggleStatus('Approved')">
+        <div class="stat-icon stat-icon-blue">
+          <q-icon name="task_alt" size="26px" />
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Approved</div>
+          <div class="stat-value">{{ stats.approved }}</div>
+        </div>
+      </q-card>
+
+
+
+      <!-- Disapproved -->
+      <q-card flat class="stat-card stat-card-link" :class="{ 'is-active': selectedStatus === 'Disapproved' }" v-ripple
+        @click="toggleStatus('Disapproved')">
+        <div class="stat-icon stat-icon-red">
+          <q-icon name="cancel" size="26px" />
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Disapproved</div>
+          <div class="stat-value">{{ stats.disapproved }}</div>
+        </div>
+      </q-card>
+    </section>
     <q-card flat bordered class="detail-card">
       <div class="section-head">
         <div class="section-head-text">
@@ -227,6 +274,9 @@
           </div>
           <div class="section-sub">Select employees to nominate for this schedule</div>
         </div>
+
+        <q-select :model-value="selectedStatus" :options="statusOptions" label="Filter by status" dense outlined
+          clearable class="office-filter" @update:model-value="applyStatusFilter" />
         <q-select :model-value="selectedOffice" :options="officeFilterOptions" label="Filter by office" dense outlined
           clearable class="office-filter" @update:model-value="applyOfficeFilter" />
       </div>
@@ -234,6 +284,7 @@
       <!-- <div class="detail-body" v-if="!nominatedEmployees.length">
         <div class="table-empty">No nominations yet for this schedule.</div>
       </div> -->
+
       <q-table flat :rows="nominatedEmployees" :columns="nominatedColumns" row-key="nominated_employee_id"
         v-model:pagination="pagination" :loading="tableLoading" :rows-per-page-options="[5, 10, 20, 50]"
         no-data-label="No nominations found." @request="onRequest" class="app-table detail-table">
@@ -256,7 +307,7 @@
                 </q-badge>
               </template>
 
-              <template v-else-if="col.name === 'action'">
+              <!-- <template v-else-if="col.name === 'action'">
                 <div class="row-actions">
                   <q-btn flat dense round icon="visibility" color="primary"
                     :loading="isViewLoading(props.row.nominated_employee_id)" :disable="isAnyViewLoading()"
@@ -275,6 +326,35 @@
                     @click.stop="disapproveNomination(props.row)">
                     <q-tooltip>Disapprove</q-tooltip>
                   </q-btn>
+                </div>
+              </template> -->
+              <template v-else-if="col.name === 'action'">
+                <div class="row-actions">
+                  <q-btn flat dense round icon="visibility" color="primary"
+                    :loading="isViewLoading(props.row.nominated_employee_id)" :disable="isAnyViewLoading()"
+                    @click.stop="viewEmployeeInformation(props.row)">
+                    <q-tooltip>View Details</q-tooltip>
+                  </q-btn>
+
+                  <!-- <button type="button" class="tri-toggle"
+                    :class="'is-' + (props.row.nominate_status || 'Pending').toLowerCase()"
+                    :disabled="isReviewLoading(props.row.nominated_employee_id) || isAnyReviewLoading()"
+                    @click.stop="reviewNomination(props.row)">
+                    <span class="tri-knob">
+                      <q-spinner v-if="isReviewLoading(props.row.nominated_employee_id)" size="10px" color="white" />
+                    </span>
+                    <q-tooltip>Review nomination</q-tooltip>
+                  </button> -->
+                <q-toggle
+              :model-value="statusToModel(props.row.nominate_status)"
+                :class="'toggle-' + (props.row.nominate_status || 'Pending').toLowerCase()"
+                :disable="isReviewLoading(props.row.nominated_employee_id) || isAnyReviewLoading()"
+                toggle-indeterminate
+                dense
+                @update:model-value="reviewNomination(props.row)"
+              >
+                <q-tooltip>Review nomination</q-tooltip>
+              </q-toggle>
                 </div>
               </template>
 
@@ -359,7 +439,6 @@ export default defineComponent({
     const schedule = computed(() => eventInfo.value.schedule?.[0] || {});
 
     const offices = computed(() => (schedule.value.office || []).map((o) => o.office_name));
-    const speakers = computed(() => schedule.value.speaker || []);
     const nominatedEmployees = computed(() => schedule.value.nominated_employee?.data || []);
 
     function timeOrDefault(value, defaultValue = "00:00") {
@@ -373,8 +452,16 @@ export default defineComponent({
         morning_out: timeOrDefault(d.morning_out),
         afternoon_in: timeOrDefault(d.afternoon_in),
         afternoon_out: timeOrDefault(d.afternoon_out),
+        speakers: d.speakers || [],
       }))
     );
+    const speakers = computed(() => {
+      const map = new Map();
+      scheduleDates.value.forEach((d) =>
+        d.speakers.forEach((sp) => map.set(sp.speakerId, sp))
+      );
+      return [...map.values()];
+    });
     // Offices for the right column (with nominee counts)
     const officeList = computed(() =>
       (schedule.value.office || [])
@@ -393,18 +480,18 @@ export default defineComponent({
         // may nominees muna sa taas, tapos alphabetical
         .sort((a, b) => b.nominees - a.nominees || a.name.localeCompare(b.name))
     );
-    
+
 
     const showEmployeeModal = ref(false);
     const EmployeeInformation = ref({});
     const loadingEmployeeInfo = ref(false);
 
     const { isLoading: isViewLoading, isAnyLoading: isAnyViewLoading, run: runView } = useRowLoading();
-    const { isLoading: isApproveLoading, isAnyLoading: isAnyApproveLoading, run: runApprove } = useRowLoading();
-    const { isLoading: isDisapproveLoading, isAnyLoading: isAnyDisapproveLoading, run: runDisapprove } = useRowLoading();
+    // const { isLoading: isApproveLoading, isAnyLoading: isAnyApproveLoading, run: runApprove } = useRowLoading();
+    // const { isLoading: isDisapproveLoading, isAnyLoading: isAnyDisapproveLoading, run: runDisapprove } = useRowLoading();
     const { isLoading: isNominationLoading, isAnyLoading: isAnyNominationLoading, run: runNomination } = useRowLoading();
     const { isLoading: isAttendanceLoading, isAnyLoading: isAnyAttendanceLoading, run: runAttendance } = useRowLoading();
-
+    const { isLoading: isReviewLoading, isAnyLoading: isAnyReviewLoading, run: runReview } = useRowLoading();
 
     const pdfStore = usePdfStore();
     const printingDateId = ref(null);
@@ -455,7 +542,7 @@ export default defineComponent({
     const nominatedColumns = [
       { name: "name", label: "Name", field: "full_name", align: "left" },
       { name: "designation", label: "Position", field: "designation", align: "left" },
-      { name: "office", label: "Office", field: "office", align: "left" },
+      { name: "office", label: "Office", field: (row) => row.office_abbr || row.office, align: "left" },
       { name: "status", label: "Status", field: "status", align: "left" },
       { name: "nominate_status", label: "Nominate status", field: "nominate_status", align: "center" },
       { name: "action", label: "Action", field: "action", align: "center" },
@@ -479,13 +566,13 @@ export default defineComponent({
 
     async function loadNominatedEmployees(
       page = pagination.value.page,
-      { silent = false, perPage = pagination.value.rowsPerPage, office = selectedOffice.value } = {}
+      { silent = false, perPage = pagination.value.rowsPerPage, office = selectedOffice.value, status = selectedStatus.value, } = {}
     ) {
       if (silent) tableLoading.value = true;
       else loading.value = true;
       errorMessage.value = "";
 
-      const result = await eventStore.fetchNominatedEmployee(eventId, scheduleId, page, perPage, office);
+      const result = await eventStore.fetchNominatedEmployee(eventId, scheduleId, page, perPage, office, status);
 
 
       if (result.success) {
@@ -521,95 +608,95 @@ export default defineComponent({
       await loadNominatedEmployees();
     });
 
-    async function approveNomination(row) {
-      return runApprove(row.nominated_employee_id, async () => {
-        const result = await Swal.fire({
-          title: "Approve Nomination",
-          text: `Approve nomination for ${row.full_name}?`,
-          icon: "question",
-          showCancelButton: true,
-          confirmButtonText: "Approve",
-          cancelButtonText: "Cancel",
-          confirmButtonColor: "#18b64d",
-          cancelButtonColor: "#9e9e9e",
-          reverseButtons: true,
-          scrollbarPadding: false,
-          heightAuto: false,
-        });
+    // async function approveNomination(row) {
+    //   return runApprove(row.nominated_employee_id, async () => {
+    //     const result = await Swal.fire({
+    //       title: "Approve Nomination",
+    //       text: `Approve nomination for ${row.full_name}?`,
+    //       icon: "question",
+    //       showCancelButton: true,
+    //       confirmButtonText: "Approve",
+    //       cancelButtonText: "Cancel",
+    //       confirmButtonColor: "#18b64d",
+    //       cancelButtonColor: "#9e9e9e",
+    //       reverseButtons: true,
+    //       scrollbarPadding: false,
+    //       heightAuto: false,
+    //     });
 
-        if (!result.isConfirmed) return;
+    //     if (!result.isConfirmed) return;
 
-        const res = await eventStore.approvalNominatedEmployee(row.nominated_employee_id, {
-          nominate_status: "Approved",
-        });
+    //     const res = await eventStore.approvalNominatedEmployee(row.nominated_employee_id, {
+    //       nominate_status: "Approved",
+    //     });
 
-        if (res.success) {
-          Swal.fire({
-            toast: true,
-            position: "top-end",
-            icon: "success",
-            title: "Nomination approved.",
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-            scrollbarPadding: false,
-          });
-          await loadNominatedEmployees(pagination.value.page, { silent: true });
-        } else {
-          Swal.fire({
-            title: "Failed",
-            text: res.message || "Unable to approve nomination.",
-            icon: "error",
-            scrollbarPadding: false,
-          });
-        }
-      });
-    }
+    //     if (res.success) {
+    //       Swal.fire({
+    //         toast: true,
+    //         position: "top-end",
+    //         icon: "success",
+    //         title: "Nomination approved.",
+    //         showConfirmButton: false,
+    //         timer: 2000,
+    //         timerProgressBar: true,
+    //         scrollbarPadding: false,
+    //       });
+    //       await loadNominatedEmployees(pagination.value.page, { silent: true });
+    //     } else {
+    //       Swal.fire({
+    //         title: "Failed",
+    //         text: res.message || "Unable to approve nomination.",
+    //         icon: "error",
+    //         scrollbarPadding: false,
+    //       });
+    //     }
+    //   });
+    // }
 
-    async function disapproveNomination(row) {
-      return runDisapprove(row.nominated_employee_id, async () => {
-        const result = await Swal.fire({
-          title: "Disapprove Nomination",
-          text: `Disapprove nomination for ${row.full_name}?`,
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Disapproved",
-          cancelButtonText: "Cancel",
-          confirmButtonColor: "#d83d3d",
-          cancelButtonColor: "#9e9e9e",
-          reverseButtons: true,
-          scrollbarPadding: false,
-          heightAuto: false,
-        });
+    // async function disapproveNomination(row) {
+    //   return runDisapprove(row.nominated_employee_id, async () => {
+    //     const result = await Swal.fire({
+    //       title: "Disapprove Nomination",
+    //       text: `Disapprove nomination for ${row.full_name}?`,
+    //       icon: "warning",
+    //       showCancelButton: true,
+    //       confirmButtonText: "Disapproved",
+    //       cancelButtonText: "Cancel",
+    //       confirmButtonColor: "#d83d3d",
+    //       cancelButtonColor: "#9e9e9e",
+    //       reverseButtons: true,
+    //       scrollbarPadding: false,
+    //       heightAuto: false,
+    //     });
 
-        if (!result.isConfirmed) return;
+    //     if (!result.isConfirmed) return;
 
-        const res = await eventStore.approvalNominatedEmployee(row.nominated_employee_id, {
-          nominate_status: "Disapproved",
-        });
+    //     const res = await eventStore.approvalNominatedEmployee(row.nominated_employee_id, {
+    //       nominate_status: "Disapproved",
+    //     });
 
-        if (res.success) {
-          Swal.fire({
-            toast: true,
-            position: "top-end",
-            icon: "success",
-            title: "Nomination disapproved.",
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-            scrollbarPadding: false,
-          });
-          await loadNominatedEmployees(pagination.value.page, { silent: true });
-        } else {
-          Swal.fire({
-            title: "Failed",
-            text: res.message || "Unable to disapprove nomination.",
-            icon: "error",
-            scrollbarPadding: false,
-          });
-        }
-      });
-    }
+    //     if (res.success) {
+    //       Swal.fire({
+    //         toast: true,
+    //         position: "top-end",
+    //         icon: "success",
+    //         title: "Nomination disapproved.",
+    //         showConfirmButton: false,
+    //         timer: 2000,
+    //         timerProgressBar: true,
+    //         scrollbarPadding: false,
+    //       });
+    //       await loadNominatedEmployees(pagination.value.page, { silent: true });
+    //     } else {
+    //       Swal.fire({
+    //         title: "Failed",
+    //         text: res.message || "Unable to disapprove nomination.",
+    //         icon: "error",
+    //         scrollbarPadding: false,
+    //       });
+    //     }
+    //   });
+    // }
 
     async function printAttendance(dateRow) {
       return runAttendance(dateRow.schedule_date_time_id, async () => {
@@ -690,10 +777,76 @@ export default defineComponent({
       { key: "post", label: "Post Test", url: assessment.value.post_test_assessment || "" },
     ]);
 
-  
 
 
+    async function reviewNomination(row) {
+      // 1. Tanong muna (hindi pa naka-loading)
+      const result = await Swal.fire({
+        title: "Review Nomination",
+        text: `Update the nomination status of ${row.full_name}?`,
+        icon: "question",
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: "Approve",
+        denyButtonText: "Disapprove",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#18b64d",
+        denyButtonColor: "#d83d3d",
+        cancelButtonColor: "#9e9e9e",
+        scrollbarPadding: false,
+        heightAuto: false,
+      });
 
+      let status = null;
+      if (result.isConfirmed) status = "Approved";
+      else if (result.isDenied) status = "Disapproved";
+      else return; // Cancel / close
+
+      // 2. Loading lang habang nagse-save
+      return runReview(row.nominated_employee_id, async () => {
+        const res = await eventStore.approvalNominatedEmployee(row.nominated_employee_id, {
+          nominate_status: status,
+        });
+
+        if (res.success) {
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: `Nomination ${status.toLowerCase()}.`,
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            scrollbarPadding: false,
+          });
+          await loadNominatedEmployees(pagination.value.page, { silent: true });
+        } else {
+          Swal.fire({
+            title: "Failed",
+            text: res.message || "Unable to update nomination.",
+            icon: "error",
+            scrollbarPadding: false,
+          });
+        }
+      });
+    }
+
+    const selectedStatus = ref(null);
+    const statusOptions = ["Pending", "Approved", "Disapproved"];
+
+    const stats = computed(
+      () =>
+        schedule.value.nomination_stats || { total: 0, approved: 0, pending: 0, disapproved: 0 }
+    );
+    function applyStatusFilter(status) {
+      selectedStatus.value = status || null;
+      return loadNominatedEmployees(1, { silent: true });
+    }
+
+    // click sa stat card: i-toggle ang status filter
+    function toggleStatus(status) {
+      return applyStatusFilter(selectedStatus.value === status ? null : status);
+    }
     return {
       loading,
       errorMessage,
@@ -710,8 +863,8 @@ export default defineComponent({
       showNominationDetailsDialog,
       viewedNomination,
       viewNominationDetails,
-      approveNomination,
-      disapproveNomination,
+      // approveNomination,
+      // disapproveNomination,
       viewEmployeeInformation,
 
       showEmployeeModal,
@@ -721,11 +874,15 @@ export default defineComponent({
       isViewLoading,
       isAnyViewLoading,
 
-      isApproveLoading,
-      isAnyApproveLoading,
+      // isApproveLoading,
+      // isAnyApproveLoading,
 
-      isDisapproveLoading,
-      isAnyDisapproveLoading,
+      reviewNomination,
+      isReviewLoading,
+      isAnyReviewLoading,
+
+      // isDisapproveLoading,
+      // isAnyDisapproveLoading,
 
       isNominationLoading,
       isAnyNominationLoading,
@@ -750,10 +907,29 @@ export default defineComponent({
 
       assessment,
       assessmentItems,
+      statusToModel,
+      statusColor,
+
+      stats,
+      selectedStatus,
+      statusOptions,
+      applyStatusFilter,
+      toggleStatus,
 
     };
   },
 });
+function statusToModel(status) {
+  if (status === "Approved") return true;
+  if (status === "Disapproved") return false;
+  return null; // Pending → gitna
+}
+
+function statusColor(status) {
+  if (status === "Approved") return "positive";
+  if (status === "Disapproved") return "negative";
+  return "grey-6";
+}
 </script>
 
 <style scoped>
@@ -1668,4 +1844,226 @@ export default defineComponent({
   color: #aab5bb;
   font-size: 11.5px;
 }
+
+.date-speakers {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed #e5ebef;
+}
+
+.date-speakers .speaker-list {
+  margin-top: 0;
+}
+
+.date-speakers .speaker-item {
+  background: #ffffff;
+}
+
+.statistics-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 16px;
+
+  margin-top: 18px;
+}
+
+.stat-card {
+  position: relative;
+
+  min-height: 116px;
+
+  display: flex;
+
+  align-items: center;
+
+  padding: 18px;
+
+  border-radius: 13px;
+
+  background: #ffffff;
+
+  box-shadow: 0 3px 12px rgba(30, 70, 42, 0.055);
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 7px 18px rgba(30, 70, 42, 0.09);
+}
+
+.stat-icon {
+  width: 62px;
+  height: 62px;
+
+  min-width: 62px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 13px;
+
+  color: #ffffff;
+}
+
+.stat-icon-green {
+  background: linear-gradient(135deg, #11998E, #38EF7D);
+}
+
+.stat-icon-blue {
+  background: linear-gradient(135deg, #159bf0, #0879d8);
+}
+
+.stat-icon-yellow {
+  background: linear-gradient(135deg, #ffbe35, #f4a900);
+}
+
+.stat-icon-purple {
+  background: linear-gradient(135deg, #12a34a, #12a34a);
+}
+
+/* color: #12a34a; */
+.stat-content {
+  margin-left: 15px;
+}
+
+.stat-label {
+  color: #687a83;
+
+  font-size: 12px;
+}
+
+.stat-value {
+  margin-top: 2px;
+
+  color: #14283b;
+
+  font-size: 27px;
+
+  line-height: 1.1;
+
+  font-weight: 750;
+}
+
+.stat-change {
+  display: flex;
+
+  align-items: center;
+
+  gap: 2px;
+
+  margin-top: 5px;
+
+  font-size: 10px;
+}
+
+.stat-change-green {
+  color: #12a34a;
+}
+
+.stat-change-blue {
+  color: #087ed8;
+}
+
+.stat-change-yellow {
+  color: #e9a400;
+}
+
+.stat-change-purple {
+  color: #8149d4;
+}
+
+.stat-arrow {
+  position: absolute;
+
+  right: 15px;
+  bottom: 15px;
+
+  width: 29px;
+  height: 29px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #15a64b;
+
+  background: #effaf1;
+}
+
+.stat-arrow-blue {
+  color: #158de0;
+  background: #eef8ff;
+}
+
+.stat-arrow-yellow {
+  color: #e5a000;
+  background: #fff8e8;
+}
+
+.stat-arrow-purple {
+  color: #8248d5;
+  background: #f6f0ff;
+}
+
+
+.stat-icon-red {
+  background: linear-gradient(135deg, #ef5350, #d83d3d);
+}
+
+@media (max-width: 900px) {
+  .statistics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .statistics-grid {
+    grid-template-columns: 1fr;
+    padding: 14px 16px 4px;
+  }
+}
+
+.filter-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stat-card-link {
+  cursor: pointer;
+}
+
+.stat-card.is-active {
+  box-shadow: 0 0 0 2px #8db8dc;
+}
+.toggle-approved :deep(.q-toggle__track) {
+  background: #18b64d;
+  opacity: 0.5;
+}
+.toggle-approved :deep(.q-toggle__thumb:after) {
+  background: #18b64d;
+}
+
+/* Disapproved = red */
+.toggle-disapproved :deep(.q-toggle__track) {
+  background: #d83d3d;
+  opacity: 0.5;
+}
+.toggle-disapproved :deep(.q-toggle__thumb:after) {
+  background: #d83d3d;
+}
+
+
 </style>
