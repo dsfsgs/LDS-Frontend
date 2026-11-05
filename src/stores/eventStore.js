@@ -169,11 +169,11 @@ export const useEventStore = defineStore("event", {
       }
     },
 
-    async fetchNominatedEmployee(eventId, scheduleId, page = 1, perPage = 10, office = null) {
+    async fetchNominatedEmployee(eventId, scheduleId, page = 1, perPage = 10, office = null,status = null) {
       this.loading = true;
       this.error = null;
       try {
-        const response = await nominated_employee(eventId, scheduleId, page, perPage, office);
+        const response = await nominated_employee(eventId, scheduleId, page, perPage, office, status);
         this.nominated_employee = response.data.data || response.data || null;
         return { success: true };
       } catch (err) {

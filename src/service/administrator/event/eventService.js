@@ -11,13 +11,14 @@ export const suggested_employees = (office, titleName, sg = null) => {
 };
 
 // nominated employee
-export const nominated_employee = (eventId, scheduleId, page = 1, perPage = 10, office = null) => {
+export const nominated_employee = (eventId, scheduleId, page = 1, perPage = 10, office = null, status = null) => {
   return api.get(`event/nominated-employee/${eventId}/${scheduleId}`, {
     params: {
       page,
       per_page: perPage,
       // kapag null/empty, hindi isasama ng axios sa URL
       office: office,
+      status:status
     },
   });
 };

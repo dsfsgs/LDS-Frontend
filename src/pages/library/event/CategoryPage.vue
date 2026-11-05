@@ -7,7 +7,7 @@
             <div>
                 <h5>Competency Management</h5>
 
-                <!-- <p>Manage learning and development Categorys and their schedules.</p> -->
+                <!-- <p>Manage Competency.</p> -->
             </div>
 
             <q-btn unelevated no-caps icon="add" label="Add Compentecy" class="add-Category-btn"
