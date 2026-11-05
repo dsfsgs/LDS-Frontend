@@ -2,7 +2,6 @@
   <div class="ec">
     <!-- HEADER -->
     <header class="ec-head">
-
       <h2 class="ec-title">Calendar</h2>
 
       <div class="ec-tools">
@@ -18,8 +17,8 @@
     </header>
 
     <div class="ec-body">
-      <!-- SIDEBAR -->
-      <aside class="ec-side">
+      <!-- SIDEBAR (desktop/tablet lang) -->
+      <aside v-if="!isMobile" class="ec-side">
         <q-date v-model="selectedDate" mask="YYYY-MM-DD" minimal flat first-day-of-week="1" color="green-7"
           :events="eventDatesForPicker" event-color="green-5" class="ec-mini" @navigation="onMiniNavigate" />
 
@@ -34,23 +33,47 @@
 
       <!-- MAIN CALENDAR -->
       <section class="ec-main">
+        <!-- MOBILE: month nav + status filters -->
+        <template v-if="isMobile">
+          <div class="ec-m-nav">
+            <q-btn flat round dense icon="chevron_left" @click="shiftMonth(-1)" />
+            <div class="ec-m-month">{{ monthTitle }}</div>
+            <q-btn flat round dense icon="chevron_right" @click="shiftMonth(1)" />
+          </div>
+
+          <div class="ec-m-filters">
+            <span v-for="s in statuses" :key="s.value" class="ec-chip ec-chip--btn"
+              :class="{ 'ec-chip--off': !activeStatuses.includes(s.value) }"
+              :style="{ color: s.color, borderColor: s.color }" role="button" tabindex="0"
+              @click="toggleStatus(s.value)" @keydown.enter="toggleStatus(s.value)">
+              {{ s.label }}
+            </span>
+          </div>
+        </template>
+
         <q-calendar-month ref="calendar" v-model="selectedDate" bordered :weekdays="[1, 2, 3, 4, 5, 6, 0]"
-          :day-min-height="120" :day-style="dayStyle" locale="en-PH">
-          <!-- HEAT MAP: bilang ng events (kulay ng buong cell = dayStyle sa script)
-               DEFAULT: spacer lang, para lumaki ang row kasya ang mga bar -->
+          :day-min-height="isMobile ? 56 : 120" :short-weekday-label="isMobile" :day-style="dayStyle"
+          locale="en-PH" @click-day="onClickDay">
           <template #day="{ scope: { timestamp, outside } }">
+            <!-- HEAT MAP -->
             <div v-if="mode === 'heat'" class="ec-heat" :class="{ 'ec-dim': outside }">
               <template v-if="countFor(timestamp.date)">
                 <span class="ec-heat-label">Events</span>
                 <span class="ec-heat-value">{{ countFor(timestamp.date) }}</span>
               </template>
             </div>
+            <!-- MOBILE: dots lang -->
+            <div v-else-if="isMobile" class="ec-dots" :class="{ 'ec-dim': outside }">
+              <span v-for="(st, i) in dotsFor(timestamp.date)" :key="i" class="ec-dot ec-dot--sm"
+                :style="{ background: colorOf(st) }"></span>
+            </div>
+            <!-- DESKTOP: spacer para kasya ang mga bar -->
             <div v-else :style="{ height: spacerHeight(timestamp) }"></div>
           </template>
 
-          <!-- DEFAULT MODE: tuloy-tuloy na bar para sa multi-day events -->
+          <!-- DESKTOP: tuloy-tuloy na bar para sa multi-day events -->
           <template #week="{ scope: { week } }">
-            <div v-if="mode === 'default'" class="ec-week">
+            <div v-if="mode === 'default' && !isMobile" class="ec-week">
               <template v-for="layout in [weekLayout(week.map((d) => d.date))]" :key="layout.first">
                 <div v-for="bar in layout.bars" :key="bar.seg.key" class="ec-bar"
                   :class="{ 'ec-bar--cl': bar.contLeft, 'ec-bar--cr': bar.contRight }" :style="{
@@ -70,6 +93,28 @@
             </div>
           </template>
         </q-calendar-month>
+
+        <!-- MOBILE: agenda ng napiling araw -->
+        <div v-if="isMobile" class="ec-agenda">
+          <div class="ec-agenda-title">{{ fmtLong(selectedDate) }}</div>
+
+          <div v-if="!agendaSegments.length" class="ec-agenda-empty">No events on this day</div>
+
+          <div v-for="seg in agendaSegments" :key="seg.key" class="ec-agenda-item"
+            :style="{ borderLeftColor: colorOf(seg.status) }" role="button" tabindex="0" @click="openEvent(seg)"
+            @keydown.enter="openEvent(seg)">
+            <div class="ec-agenda-name">{{ seg.title }}</div>
+            <div v-if="seg.venue" class="ec-agenda-meta">
+              <q-icon name="place" size="14px" /> {{ seg.venue }}
+            </div>
+            <div v-if="timesOn(seg, selectedDate)" class="ec-agenda-meta">
+              <q-icon name="schedule" size="14px" /> {{ timesOn(seg, selectedDate) }}
+            </div>
+            <span class="ec-chip" :style="{ color: colorOf(seg.status), borderColor: colorOf(seg.status) }">
+              {{ statusLabel(seg.status) }}
+            </span>
+          </div>
+        </div>
 
         <q-inner-loading :showing="pending > 0" color="green-7" />
       </section>
@@ -123,9 +168,9 @@
             </q-item-section>
           </q-item>
         </q-list>
+
         <!-- ACTIONS (detalye lang) -->
         <q-card-actions v-if="activeSeg" align="right" class="ec-dialog-actions">
-          <!-- <q-btn flat no-caps label="Close" @click="dialogOpen = false" /> -->
           <q-btn unelevated no-caps color="green-7" label="View Details" @click="viewEvent" />
         </q-card-actions>
       </q-card>
@@ -135,15 +180,20 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import { QCalendarMonth } from '@quasar/quasar-ui-qcalendar'
 import '@quasar/quasar-ui-qcalendar/dist/index.css'
 // Ayusin ang path kung iba ang lokasyon ng store mo
 import { useDashboardStore } from 'src/stores/administrator/dashboard/dashboardStore'
 
+const $q = useQuasar()
 const store = useDashboardStore()
 
 // Lumalabas kapag may na-click na event (para magamit ng parent, hal. router.push)
 const emit = defineEmits(['event-click', 'view-event', 'month-change'])
+
+// Cellphone = lapad na mas maliit sa 600px
+const isMobile = computed(() => $q.screen.lt.sm)
 
 const calendar = ref(null)
 const selectedDate = ref(new Date().toLocaleDateString('en-CA')) // YYYY-MM-DD (local)
@@ -158,6 +208,13 @@ const statuses = [
 const activeStatuses = ref(statuses.map((s) => s.value))
 const colorOf = (status) => statuses.find((s) => s.value === status)?.color
 
+// Mobile: i-tap ang chip para i-on/off ang status
+const toggleStatus = (value) => {
+  const i = activeStatuses.value.indexOf(value)
+  if (i > -1) activeStatuses.value.splice(i, 1)
+  else activeStatuses.value.push(value)
+}
+
 // computedStatus mula sa API ("complete", atbp.) -> value ng filter
 const normalizeStatus = (raw) => {
   const v = String(raw || '').toLowerCase()
@@ -165,7 +222,6 @@ const normalizeStatus = (raw) => {
   if (v.includes('going')) return 'ongoing'
   return 'upcoming'
 }
-const DEFAULT_TIME = '00:00'
 const timeOrDefault = (value) =>
   value === null || value === undefined || value === '' ? '00:00' : value
 
@@ -207,6 +263,14 @@ const toIso = (str) => {
   return null
 }
 
+// Pamagat ng buwan para sa mobile nav
+const monthTitle = computed(() =>
+  new Date(`${selectedDate.value.slice(0, 7)}-01T00:00:00`).toLocaleDateString('en-PH', {
+    month: 'long',
+    year: 'numeric',
+  })
+)
+
 /* ---------- EVENTS (mula sa API) ---------- */
 const eventMap = ref({}) // key: `${scheduleId}-${dateTimeId}` -> iwas duplicate
 const events = computed(() => Object.values(eventMap.value))
@@ -233,26 +297,26 @@ const loadMonth = async (year, month) => {
 
   const next = { ...eventMap.value }
   const schedules = res.data || []
- schedules.forEach((s) => {
-  const days = s.schedule_date_time || []
-  days.forEach((d) => {
-    const date = toIso(d.schedule_date)
-    if (!date) return
-    const title = s.event?.title_name || ' '
-    const key = `${s.scheduleId}-${d.schedule_date_time_id}`   // <-- ito
-    next[key] = {
-      id: key,
-      scheduleId: s.scheduleId,
-      title,
-      date,
-      status: normalizeStatus(s.computedStatus),
-      eventId: s.event_id,
-      venue: s.venue_name || '',
-      am: `${timeOrDefault(d.morning_in)} - ${timeOrDefault(d.morning_out)}`,
-      pm: `${timeOrDefault(d.afternoon_in)} - ${timeOrDefault(d.afternoon_out)}`,
-    }
+  schedules.forEach((s) => {
+    const days = s.schedule_date_time || []
+    days.forEach((d) => {
+      const date = toIso(d.schedule_date)
+      if (!date) return
+      const title = s.event?.title_name || ' '
+      const key = `${s.scheduleId}-${d.schedule_date_time_id}`
+      next[key] = {
+        id: key,
+        scheduleId: s.scheduleId,
+        title,
+        date,
+        status: normalizeStatus(s.computedStatus),
+        eventId: s.event_id,
+        venue: s.venue_name || '',
+        am: `${timeOrDefault(d.morning_in)} - ${timeOrDefault(d.morning_out)}`,
+        pm: `${timeOrDefault(d.afternoon_in)} - ${timeOrDefault(d.afternoon_out)}`,
+      }
+    })
   })
-})
   eventMap.value = next
 }
 
@@ -261,8 +325,8 @@ const viewEvent = () => {
   emit('view-event', activeSeg.value)
   dialogOpen.value = false
 }
-// Kukunin ang buwan na nakikita + nakaraan + susunod (para lumabas din ang
-// mga araw ng kalapit na buwan sa grid). Naka-cache, kaya bago lang ang ifi-fetch.
+
+// Kukunin ang buwan na nakikita. Naka-cache, kaya bago lang ang ifi-fetch.
 watch(
   () => selectedDate.value.slice(0, 7),
   () => {
@@ -279,6 +343,12 @@ const visibleEvents = computed(() =>
 
 const eventsFor = (date) => visibleEvents.value.filter((e) => e.date === date)
 const countFor = (date) => eventsFor(date).length
+
+// Mobile: hanggang 3 dots bawat araw, kulay ayon sa status
+const dotsFor = (date) =>
+  eventsFor(date)
+    .slice(0, 3)
+    .map((e) => e.status)
 
 const eventDatesForPicker = computed(() =>
   visibleEvents.value.map((e) => e.date.replace(/-/g, '/'))
@@ -397,11 +467,20 @@ const statusLabel = (status) => statuses.find((s) => s.value === status)?.label 
 const rangeLabel = (seg) =>
   seg.start === seg.end ? fmtLong(seg.start) : `${fmtLong(seg.start)} - ${fmtLong(seg.end)}`
 
-const daySegments = computed(() =>
-  dayDate.value
-    ? segments.value.filter((seg) => seg.start <= dayDate.value && seg.end >= dayDate.value)
-    : []
-)
+const segmentsOn = (date) =>
+  date ? segments.value.filter((seg) => seg.start <= date && seg.end >= date) : []
+
+const daySegments = computed(() => segmentsOn(dayDate.value))
+
+// Mobile agenda: events ng napiling araw
+const agendaSegments = computed(() => segmentsOn(selectedDate.value))
+
+// Oras ng event sa isang partikular na araw (para sa agenda)
+const timesOn = (seg, date) => {
+  const d = seg.days.find((x) => x.date === date)
+  if (!d) return ''
+  return [d.am && `AM ${d.am}`, d.pm && `PM ${d.pm}`].filter(Boolean).join('  •  ')
+}
 
 const openEvent = (seg) => {
   activeSeg.value = seg
@@ -416,6 +495,13 @@ const openDay = (date) => {
 const resetDialog = () => {
   activeSeg.value = null
   dayDate.value = null
+}
+
+// Mobile: i-tap ang araw para makita ang events niya sa ilalim
+const onClickDay = (payload) => {
+  if (!isMobile.value) return
+  const ts = payload?.scope?.timestamp ?? payload?.timestamp
+  if (ts?.date) selectedDate.value = ts.date
 }
 
 /* ---------- HEAT MAP ---------- */
@@ -433,23 +519,43 @@ const heatColor = (date) => {
 }
 
 // Ipinapasa sa QCalendar para ang BUONG cell ang makulayan, hindi lang ang loob
-const dayStyle = ({ scope }) =>
-  mode.value === 'heat' ? { background: heatColor(scope.timestamp.date) } : {}
-
-/* ---------- NAVIGATION ---------- */
-// Kapag nag-next/prev ng buwan sa mini calendar, lilipat din ang malaking calendar
-const onMiniNavigate = ({ year, month }) => {
-  const [y, m, d] = selectedDate.value.split('-').map(Number)
-  if (y === year && m === month) return // walang pagbabago, iwas loop
-
-  // panatilihin ang araw kung kaya (hal. 31 -> 30 kapag 30 lang ang araw ng buwan)
-  const lastDay = new Date(year, month, 0).getDate()
-  const day = Math.min(d, lastDay)
-
-  selectedDate.value = `${year}-${pad(month)}-${pad(day)}`
+const dayStyle = ({ scope }) => {
+  const date = scope.timestamp.date
+  const style = {}
+  if (mode.value === 'heat') style.background = heatColor(date)
+  // Mobile: may outline ang napiling araw
+  if (isMobile.value && date === selectedDate.value) {
+    style.boxShadow = 'inset 0 0 0 2px #16b84d'
+  }
+  return style
 }
 
-const goToday = () => calendar.value?.moveToToday()
+/* ---------- NAVIGATION ---------- */
+// Lilipat sa ibang buwan, pinapanatili ang araw kung kaya
+// (hal. 31 -> 30 kapag 30 lang ang araw ng buwan)
+const moveToMonth = (year, month) => {
+  const d = Number(selectedDate.value.split('-')[2])
+  const lastDay = new Date(year, month, 0).getDate()
+  selectedDate.value = `${year}-${pad(month)}-${pad(Math.min(d, lastDay))}`
+}
+
+// Kapag nag-next/prev ng buwan sa mini calendar, lilipat din ang malaking calendar
+const onMiniNavigate = ({ year, month }) => {
+  const [y, m] = selectedDate.value.split('-').map(Number)
+  if (y === year && m === month) return // walang pagbabago, iwas loop
+  moveToMonth(year, month)
+}
+
+// Mobile: prev/next buwan
+const shiftMonth = (n) => {
+  const [y, m] = selectedDate.value.split('-').map(Number)
+  const dt = new Date(y, m - 1 + n, 1)
+  moveToMonth(dt.getFullYear(), dt.getMonth() + 1)
+}
+
+const goToday = () => {
+  selectedDate.value = new Date().toLocaleDateString('en-CA')
+}
 </script>
 
 <style scoped>
@@ -491,7 +597,6 @@ const goToday = () => calendar.value?.moveToToday()
 .ec-toggle {
   border: 1px solid var(--ec-border);
   border-radius: 8px;
-
 }
 
 .ec-today {
@@ -712,6 +817,135 @@ const goToday = () => calendar.value?.moveToToday()
 
   .ec-side {
     max-width: 320px;
+  }
+}
+
+/* ---------- MOBILE CALENDAR ---------- */
+.ec-m-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 8px;
+}
+
+.ec-m-month {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ec-m-filters {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.ec-chip--btn {
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.ec-chip--off {
+  opacity: 0.4;
+}
+
+.ec-dots {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  min-height: 10px;
+  padding-top: 2px;
+}
+
+.ec-dot--sm {
+  width: 6px;
+  height: 6px;
+}
+
+.ec-agenda {
+  margin-top: 14px;
+}
+
+.ec-agenda-title {
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ec-agenda-empty {
+  padding: 18px 0;
+  color: var(--ec-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.ec-agenda-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--ec-border);
+  border-left: 4px solid;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ec-agenda-item:active {
+  background: #f5faf6;
+}
+
+.ec-agenda-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ec-agenda-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #687a83;
+  font-size: 12px;
+}
+
+@media (max-width: 599px) {
+  .ec {
+    padding: 10px 10px 16px;
+  }
+
+  .ec-head {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ec-title {
+    font-size: 18px;
+  }
+
+  .ec-heat {
+    min-height: 36px;
+    padding: 2px 4px 4px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ec-heat-label {
+    display: none;
+  }
+
+  .ec-heat-value {
+    font-size: 14px;
+  }
+
+  .ec-main :deep(.q-calendar-month__day--label) {
+    font-size: 11px;
+  }
+
+  .ec-dialog {
+    max-width: 94vw;
   }
 }
 </style>
