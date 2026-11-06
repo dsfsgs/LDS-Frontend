@@ -22,6 +22,7 @@ const routes = [
         path: "dashboard",
         name: "dashboard",
         component: () => import("pages/administrator/DashboardPage.vue"),
+            //  component: () => import("pages/DashboardPageOld.vue"),
         meta: { requiresAuth: true, roles: ["hr_admin"] },
       },
       {
@@ -127,6 +128,12 @@ const routes = [
         component: () => import("pages/UserPage.vue"),
         meta: { requiresAuth: true, roles: ["hr_admin"] },
       },
+       {
+        path: "bpm-admin",
+        name: "bpm-admin",
+        component: () => import("pages/administrator/BpmPage.vue"),
+        meta: { requiresAuth: true, roles: ["hr_admin"] },
+      },
       {
         path: "",
         redirect: "dashboard",
@@ -160,6 +167,12 @@ const routes = [
         path: "office/events/:scheduleId",
         name: "office-event-view",
         component: () => import("pages/office/event/EventViewPage.vue"),
+      },
+      
+      {
+        path: "bpm",
+        name: "bpm",
+        component: () => import("pages/office/BpmPage.vue"),
       },
 
          {
