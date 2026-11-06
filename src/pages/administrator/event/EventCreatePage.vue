@@ -1630,32 +1630,20 @@ export default defineComponent({
           number_of_attendees: department.attendees,
         })),
 
-        // Speakers per schedule date
-        speaker: eventForm.value.schedules.flatMap((schedule) =>
-          (schedule.speakers || [])
+      DateTime: eventForm.value.schedules.map((schedule) => ({
+          schedule_date: schedule.rawDate,
+          morning_in: formatTimeDisplay(schedule.morning_in),
+          morning_out: formatTimeDisplay(schedule.morning_out),
+          afternoon_in: formatTimeDisplay(schedule.afternoon_in),
+          afternoon_out: formatTimeDisplay(schedule.afternoon_out),
+          speakers: (schedule.speakers || [])
             .filter((sp) => sp.name.trim())
             .map((sp) => ({
-              schedule_date: schedule.rawDate,
               speaker_name: sp.name,
-              agency: sp.agency,
               position: sp.position,
-            }))
-        ),
-
-        DateTime: eventForm.value.schedules.map((schedule) => ({
-        schedule_date: schedule.rawDate,
-        morning_in: formatTimeForPayload(schedule.morning_in),
-        morning_out: formatTimeForPayload(schedule.morning_out),
-        afternoon_in: formatTimeForPayload(schedule.afternoon_in),
-        afternoon_out: formatTimeForPayload(schedule.afternoon_out),
-        speakers: (schedule.speakers || [])
-          .filter((sp) => sp.name.trim())
-          .map((sp) => ({
-            speaker_name: sp.name,
-            position: sp.position,
-            agency: sp.agency,
-          })),
-      })),
+              agency: sp.agency,
+            })),
+        })),
 
         ...buildFormsPayload(eventForm.value.forms, eventForm.value.evaluations),
         ...buildCompetenciesPayload(eventForm.value.competencies), // ← spread, hindi nested key
