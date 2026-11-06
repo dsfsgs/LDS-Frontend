@@ -32,22 +32,12 @@
       </div>
 
       <!-- ===================================================
-           TABLE
+           TABLE (server-side pagination)
       ==================================================== -->
       <div class="table-wrapper">
-        <!-- <q-table flat :rows="filteredUsers" :columns="columns" row-key="id" hide-pagination
-          :rows-per-page-options="[0, 10, 20, 50]" :loading="userStore.isLoading" class="app-table users-table"> -->
-          <q-table
-            flat
-            :rows="userStore.users"
-            :columns="columns"
-            row-key="userId"
-            v-model:pagination="pagination"
-            :rows-per-page-options="[ 20, 25, 50]"
-            :loading="userStore.isLoading"
-            class="app-table users-table"
-            @request="onRequest"
-          >
+        <q-table flat :rows="userStore.users" :columns="columns" row-key="userId" v-model:pagination="pagination"
+          :rows-per-page-options="[20, 25, 50]" :loading="userStore.isLoading" class="app-table users-table"
+          @request="onRequest">
           <!-- USER -->
           <template #body-cell-user="props">
             <q-td :props="props">
@@ -56,12 +46,11 @@
                   <div class="app-table-cell-title">
                     {{ props.row.name }}
                   </div>
-
-                  <!-- <div class="app-table-cell-meta">@{{ props.row.username }}</div> -->
                 </div>
               </div>
             </q-td>
           </template>
+
           <!-- STATUS -->
           <template #body-cell-isActive="props">
             <q-td :props="props">
@@ -69,6 +58,7 @@
                 :label="isActive(props.row.isActive) ? 'Active' : 'Inactive'" />
             </q-td>
           </template>
+
           <!-- ACTIONS -->
           <template #body-cell-actions="props">
             <q-td :props="props">
@@ -137,15 +127,17 @@
               @update:model-value="onOfficeSelected" />
 
             <template v-if="selectedOffice">
-              <q-input v-model="employeeSearch" outlined dense clearable
+              <q-input v-model="employeeSearch" outlined dense clearable debounce="400"
                 placeholder="Search employees in this office..." class="q-mb-sm">
                 <template #prepend>
                   <q-icon name="search" />
                 </template>
               </q-input>
 
-              <q-table flat :rows="filteredEmployees" :columns="employeeColumns" row-key="ControlNo" hide-pagination
-                wrap-cells :rows-per-page-options="[10, 25, 50]" :loading="officeStore.loading" class="app-table employee-table">
+              <q-table flat :rows="officeStore.employees" :columns="employeeColumns" row-key="ControlNo"
+                v-model:pagination="employeePagination" :rows-per-page-options="[10, 25, 50]"
+                :loading="officeStore.loading" wrap-cells class="app-table employee-table"
+                @request="onEmployeeRequest">
                 <template #body="props">
                   <q-tr :props="props" class="employee-row" :class="{
                     'employee-row--active':
@@ -192,15 +184,15 @@
 
               <q-input v-model="form.password" outlined dense type="password" label="Password" />
 
-              <q-input v-model="form.control_no" outlined dense label="Control No." />
+              <q-input v-model="form.control_no" outlined dense readonly label="Control No." />
 
               <q-select v-model="form.role" outlined dense emit-value map-options label="Role"
                 :options="rolePermissionStore.roles" option-label="name" option-value="name"
                 :loading="rolePermissionStore.rolesLoading" />
-
+<!-- 
               <q-select v-model="form.permissions" outlined dense multiple use-chips emit-value map-options
                 label="Permissions" :options="rolePermissionStore.permissions" option-label="name" option-value="name"
-                :loading="rolePermissionStore.permissionsLoading" class="col-span-2" />
+                :loading="rolePermissionStore.permissionsLoading" class="col-span-2" /> -->
             </div>
           </q-step>
         </q-stepper>
@@ -250,7 +242,7 @@
 
             <q-input v-model="form.password" outlined dense type="password" label="New Password (optional)" />
 
-            <q-input v-model="form.control_no" outlined dense label="Control No." />
+            <q-input v-model="form.control_no" outlined dense readonly label="Control No." />
 
             <q-select v-model="form.role" outlined dense emit-value map-options label="Role"
               :options="rolePermissionStore.roles" option-label="name" option-value="name"
@@ -313,7 +305,7 @@
 </template>
 
 <script>
-import { defineComponent, computed, onMounted, ref, watch } from "vue";
+import { defineComponent, computed, onMounted, onBeforeUnmount, ref, watch } from "vue";
 import { useQuasar } from "quasar";
 import { useUserStore } from "stores/userStore";
 import { useOfficeStore } from "stores/officeStore";
@@ -328,86 +320,13 @@ export default defineComponent({
     const officeStore = useOfficeStore();
     const rolePermissionStore = useRolePermissionStore();
 
-    const search = ref("");
-
-    // ---------------------------------------------------------------
-    // Table columns
-    // ---------------------------------------------------------------
-    const columns = [
-      {
-        name: "user",
-        label: "User",
-        field: "name",
-        align: "left",
-        sortable: true,
-      },
-      {
-        name: "control_no",
-        label: "Control no",
-        field: "control_no",
-        align: "left",
-      },
-      {
-        name: "office",
-        label: "Office",
-        field: "office_abbr",
-        align: "left",
-      },
-      {
-        name: "isActive",
-        label: "Status",
-        field: "isActive",
-        align: "left",
-      },
-      {
-        name: "role",
-        label: "Role",
-        field: "role",
-        align: "left",
-      },
-      {
-        name: "actions",
-        label: "Action",
-        field: "actions",
-        align: "center",
-      },
-    ];
-
-    const employeeColumns = [
-      {
-        name: "ControlNo",
-        label: "CONTROL NO.",
-        field: "ControlNo",
-        align: "left",
-      },
-      {
-        name: "name",
-        label: "NAME",
-        field: "name",
-        align: "left",
-        sortable: true,
-      },
-      {
-        name: "position",
-        label: "POSITION",
-        field: "position",
-        align: "left",
-      },
-    ];
-
-    const filteredUsers = computed(() => {
-      const keyword = search.value.toLowerCase().trim();
-      if (!keyword) return userStore.users;
-
-      return userStore.users.filter((user) => {
-        return (
-          user.name?.toLowerCase().includes(keyword) ||
-          user.username?.toLowerCase().includes(keyword) ||
-          user.office?.toLowerCase().includes(keyword) ||
-          user.control_no?.toLowerCase().includes(keyword)
-        );
+    function notify(type, message) {
+      $q.notify({
+        type: type === "success" ? "positive" : "negative",
+        message,
+        position: "top",
       });
-    });
+    }
 
     function getInitials(name) {
       return (name || "")
@@ -418,16 +337,68 @@ export default defineComponent({
         .toUpperCase();
     }
 
-    function clearFilters() {
-      search.value = "";
+    const isActive = (value) =>
+      value === true ||
+      value === 1 ||
+      value === "1" ||
+      (typeof value === "string" && value.toLowerCase() === "true");
+
+    const statusOptions = [
+      { label: "Active", value: true },
+      { label: "Inactive", value: false },
+    ];
+
+    // ---------------------------------------------------------------
+    // USERS TABLE (server-side pagination + search)
+    // ---------------------------------------------------------------
+    const search = ref("");
+    const pagination = ref({ page: 1, rowsPerPage: 20, rowsNumber: 0 });
+
+    // Walang sortable dahil hindi pa sinusuportahan ng backend ang sort
+    const columns = [
+      { name: "user", label: "User", field: "name", align: "left" },
+      { name: "control_no", label: "Control no", field: "control_no", align: "left" },
+      { name: "office", label: "Office", field: "office_abbr", align: "left" },
+      { name: "isActive", label: "Status", field: "isActive", align: "left" },
+      { name: "role", label: "Role", field: "role", align: "left" },
+      { name: "actions", label: "Action", field: "actions", align: "center" },
+    ];
+
+    async function loadUsers() {
+      await userStore.fetchUsers({
+        page: pagination.value.page,
+        perPage: pagination.value.rowsPerPage || 10,
+        search: (search.value || "").trim(),
+      });
+      pagination.value.rowsNumber = userStore.total;
     }
 
-    function notify(type, message) {
-      $q.notify({
-        type: type === "success" ? "positive" : "negative",
-        message,
-        position: "top",
-      });
+    async function onRequest({ pagination: p }) {
+      const perPageChanged = p.rowsPerPage !== pagination.value.rowsPerPage;
+
+      pagination.value = {
+        ...pagination.value,
+        page: perPageChanged ? 1 : p.page,
+        rowsPerPage: p.rowsPerPage,
+      };
+
+      await loadUsers();
+    }
+
+    let searchTimer;
+
+    watch(search, (newVal, oldVal) => {
+      if ((newVal || "") === (oldVal || "")) return; // null vs "" ay hindi pagbabago
+
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        pagination.value.page = 1;
+        loadUsers();
+      }, 400);
+    });
+
+    function clearFilters() {
+      search.value = "";
     }
 
     // ---------------------------------------------------------------
@@ -439,7 +410,6 @@ export default defineComponent({
     const selectedOffice = ref(null);
     const selectedEmployee = ref(null);
     const officeOptions = ref([]);
-    const employeeSearch = ref("");
 
     const emptyForm = () => ({
       name: "",
@@ -453,11 +423,6 @@ export default defineComponent({
     });
 
     const form = ref(emptyForm());
-    const isActive = (value) =>
-      value === true ||
-      value === 1 ||
-      value === "1" ||
-      (typeof value === "string" && value.toLowerCase() === "true");
 
     const addStepSubtitle = computed(() => {
       if (addStep.value === 1)
@@ -471,16 +436,52 @@ export default defineComponent({
       return true;
     });
 
-    const filteredEmployees = computed(() => {
-      const keyword = employeeSearch.value.toLowerCase().trim();
-      if (!keyword) return officeStore.employees;
+    // ----- Employee table (server-side pagination + search) -----
+    const employeeSearch = ref("");
+    const employeePagination = ref({
+      page: 1,
+      rowsPerPage: 10,
+      rowsNumber: 0, // kailangan ito para gumana ang server-side
+    });
 
-      return officeStore.employees.filter(
-        (employee) =>
-          employee.name?.toLowerCase().includes(keyword) ||
-          employee.position?.toLowerCase().includes(keyword) ||
-          employee.ControlNo?.toLowerCase().includes(keyword)
-      );
+    // Walang sortable dahil name lang ang sort ng backend
+    const employeeColumns = [
+      { name: "ControlNo", label: "CONTROL NO.", field: "ControlNo", align: "left" },
+      { name: "name", label: "NAME", field: "name", align: "center" },
+      { name: "position", label: "POSITION", field: "position", align: "center" },
+          { name: "status", label: "STATUS", field: "status", align: "right" },
+    ];
+
+    const loadEmployees = async () => {
+      if (!selectedOffice.value) return;
+
+      await officeStore.fetchEmployeesByOffice(selectedOffice.value.office_name, {
+        search: employeeSearch.value?.trim() || undefined,
+        page: employeePagination.value.page,
+        per_page: employeePagination.value.rowsPerPage,
+      });
+
+      // I-sync ang q-table sa sagot ng server
+      employeePagination.value = {
+        ...employeePagination.value,
+        page: officeStore.employeePagination.currentPage,
+        rowsPerPage: officeStore.employeePagination.perPage,
+        rowsNumber: officeStore.employeePagination.total,
+      };
+    };
+
+    // Tinatawag ng q-table kapag nag-change page o rows per page
+    const onEmployeeRequest = (props) => {
+      employeePagination.value.page = props.pagination.page;
+      employeePagination.value.rowsPerPage = props.pagination.rowsPerPage;
+      loadEmployees();
+    };
+
+    // Kapag nagbago ang search, bumalik sa page 1
+    watch(employeeSearch, (newVal, oldVal) => {
+      if ((newVal || "") === (oldVal || "")) return; // null vs "" ay hindi pagbabago
+      employeePagination.value.page = 1;
+      loadEmployees();
     });
 
     function filterOffices(val, update) {
@@ -499,15 +500,16 @@ export default defineComponent({
 
     // Selecting/changing the office immediately loads its employees so the
     // admin sees the list without an extra "Continue" click.
-    async function onOfficeSelected(office) {
+    const onOfficeSelected = () => {
       selectedEmployee.value = null;
-      employeeSearch.value = "";
-      officeStore.clearEmployees();
+      employeePagination.value.page = 1;
 
-      if (office) {
-        await officeStore.fetchEmployeesByOffice(office.office_name);
-      }
-    }
+      const hadSearch = !!employeeSearch.value;
+      employeeSearch.value = "";
+
+      // Kung may search na nabura, ang watch na ang magloload
+      if (!hadSearch) loadEmployees();
+    };
 
     // Clicking anywhere on a row selects that employee (toggle off if
     // the same row is clicked again).
@@ -554,6 +556,7 @@ export default defineComponent({
       selectedOffice.value = null;
       selectedEmployee.value = null;
       employeeSearch.value = "";
+      employeePagination.value = { page: 1, rowsPerPage: 10, rowsNumber: 0 };
       form.value = emptyForm();
       officeStore.clearEmployees();
       officeStore.clearError();
@@ -576,6 +579,7 @@ export default defineComponent({
       if (result.success) {
         showAddDialog.value = false;
         notify("success", result.message || "User created successfully.");
+        await loadUsers();
       }
     }
 
@@ -630,6 +634,7 @@ export default defineComponent({
       if (result.success) {
         showEditDialog.value = false;
         notify("success", result.message || "User updated successfully.");
+        await loadUsers();
       }
     }
 
@@ -647,72 +652,47 @@ export default defineComponent({
     async function deleteUser() {
       if (!userToDelete.value) return;
 
+      // Alamin bago mag-delete kung huling record na ito sa page
+      const wasLastOnPage =
+        userStore.users.length === 1 && pagination.value.page > 1;
+
       const result = await userStore.deleteUser(userToDelete.value.userId);
 
       if (result.success) {
         showDeleteDialog.value = false;
         notify("success", result.message || "User deleted successfully.");
+
+        if (wasLastOnPage) pagination.value.page--;
+        await loadUsers();
       } else {
         notify("error", result.message);
       }
     }
 
-    const statusOptions = [
-      { label: "Active", value: true },
-      { label: "Inactive", value: false },
-    ];
-
-
-    const pagination = ref({ page: 1, rowsPerPage: 20, rowsNumber: 0 });
-
-    async function loadUsers() {
-      await userStore.fetchUsers({
-        page: pagination.value.page,
-        perPage: pagination.value.rowsPerPage || 10,
-        search: (search.value || "").trim(),
-      });
-      pagination.value.rowsNumber = userStore.total;
-    }
-
-async function onRequest({ pagination: p }) {
-  const perPageChanged = p.rowsPerPage !== pagination.value.rowsPerPage;
-
-  pagination.value = {
-    ...pagination.value,
-    page: perPageChanged ? 1 : p.page,
-    rowsPerPage: p.rowsPerPage,
-  };
-
-  await loadUsers();
-}
-
-    let searchTimer;
-
-    watch(search, () => {
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(() => {
-        pagination.value.page = 1;
-        loadUsers();
-      }, 400);
-    });
-
-    function clearFilters() {
-      search.value = "";
-    }
     onMounted(() => {
-        loadUsers();
+      loadUsers();
       rolePermissionStore.fetchRoles();
       rolePermissionStore.fetchPermissions();
     });
+
+    onBeforeUnmount(() => {
+      clearTimeout(searchTimer);
+    });
+
     return {
       userStore,
       officeStore,
       rolePermissionStore,
 
+      // Users table
       search,
       columns,
-      employeeColumns,
-      filteredUsers,
+      pagination,
+      onRequest,
+      clearFilters,
+      getInitials,
+      isActive,
+      statusOptions,
 
       // Add wizard
       showAddDialog,
@@ -722,8 +702,10 @@ async function onRequest({ pagination: p }) {
       selectedOffice,
       selectedEmployee,
       officeOptions,
+      employeeColumns,
       employeeSearch,
-      filteredEmployees,
+      employeePagination,
+      onEmployeeRequest,
       filterOffices,
       onOfficeSelected,
       selectEmployee,
@@ -745,14 +727,6 @@ async function onRequest({ pagination: p }) {
       userToDelete,
       confirmDeleteUser,
       deleteUser,
-
-      getInitials,
-      clearFilters,
-      isActive,
-      statusOptions,
-
-      onRequest,
-      pagination
     };
   },
 });
@@ -1014,7 +988,8 @@ async function onRequest({ pagination: p }) {
 }
 
 .wizard-dialog {
-  width: 620px;
+  width: 1100px !important;
+  max-width: 95vw !important;
 }
 
 .wizard-stepper {
@@ -1032,7 +1007,7 @@ async function onRequest({ pagination: p }) {
 }
 
 .employee-table {
-  max-height: 280px;
+  max-height: 45vh;   /* o ayon sa gusto, halimbawa 400px */
 }
 
 /* Rows are clickable in place of a dedicated "select" column. */
