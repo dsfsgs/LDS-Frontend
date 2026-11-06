@@ -250,9 +250,6 @@
           <div class="stat-value">{{ stats.approved }}</div>
         </div>
       </q-card>
-
-
-
       <!-- Disapproved -->
       <q-card flat class="stat-card stat-card-link" :class="{ 'is-active': selectedStatus === 'Disapproved' }" v-ripple
         @click="toggleStatus('Disapproved')">
@@ -265,6 +262,8 @@
         </div>
       </q-card>
     </section>
+
+
     <q-card flat bordered class="detail-card">
       <div class="section-head">
         <div class="section-head-text">
@@ -1544,8 +1543,11 @@ function statusColor(status) {
 }
 
 .section-sub {
+  margin-top: 3px;
   margin-left: 28px;
-  font-size: 11px;
+  font-size: 14px;
+  color: #585c5e;
+ flex-wrap: wrap;
 }
 
 .detail-body {
