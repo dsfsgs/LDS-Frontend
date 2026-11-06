@@ -32,6 +32,13 @@
                     <q-item-label caption lines="3">{{ n.data.message }}</q-item-label>
                   </q-item-section>
                 </q-item>
+                  <!-- bago -->
+            <q-item v-if="hasMore" clickable :disable="loadingMore" class="notification-more" @click="loadMore">
+              <q-item-section class="text-center text-primary">
+                <q-spinner v-if="loadingMore" size="18px" color="primary" />
+                <span v-else>See more</span>
+              </q-item-section>
+            </q-item>
               </template>
 
               <q-item v-else>
@@ -202,29 +209,7 @@
               </q-item>
               <!-- Management -->
               <div class="nav-section">MANAGEMENT</div>
-
-              <q-item clickable v-ripple :to="{ name: 'reports' }" class="nav-item" active-class="nav-item-active">
-                <q-item-section avatar>
-                  <q-icon name="bar_chart" />
-                </q-item-section>
-
-                <q-item-section> Reports </q-item-section>
-              </q-item>
-
-              <!-- <q-item
-              clickable
-              v-ripple
-              :to="{ name: 'library' }"
-              class="nav-item"
-              active-class="nav-item-active"
-            >
-              <q-item-section avatar>
-                <q-icon name="library_books" />
-              </q-item-section>
-
-              <q-item-section> Library </q-item-section>
-            </q-item> -->
-              <q-expansion-item v-model="libraryExpanded" dense-toggle class="nav-expansion"
+                          <q-expansion-item v-model="libraryExpanded" dense-toggle class="nav-expansion"
                 header-class="nav-item nav-expansion-header" expand-icon-class="nav-expansion-icon">
                 <template #header>
                   <q-item-section avatar>
@@ -289,6 +274,29 @@
                   <q-item-section> Speaker </q-item-section>
                 </q-item>
               </q-expansion-item>
+
+              <q-item clickable v-ripple :to="{ name: 'reports' }" class="nav-item" active-class="nav-item-active">
+                <q-item-section avatar>
+                  <q-icon name="bar_chart" />
+                </q-item-section>
+
+                <q-item-section> Reports </q-item-section>
+              </q-item>
+
+              <!-- <q-item
+              clickable
+              v-ripple
+              :to="{ name: 'library' }"
+              class="nav-item"
+              active-class="nav-item-active"
+            >
+              <q-item-section avatar>
+                <q-icon name="library_books" />
+              </q-item-section>
+
+              <q-item-section> Library </q-item-section>
+            </q-item> -->
+  
 
 
               <q-item clickable v-ripple :to="{ name: 'users' }" class="nav-item" active-class="nav-item-active">
@@ -387,13 +395,10 @@ export default defineComponent({
       }
     }
 
-    onMounted(() => {
-      notificationStore.fetchNotifications();
-      pollInterval = setInterval(() => {
-        notificationStore.fetchNotifications();
-      }, 30000); // every 30s
-    });
-
+onMounted(() => {
+  refreshNotifications();
+  pollInterval = setInterval(refreshNotifications, 30000);
+});
     onUnmounted(() => {
       if (pollInterval) clearInterval(pollInterval);
     });
@@ -436,6 +441,18 @@ export default defineComponent({
       }
       return notificationIcons[n.data?.type] || defaultNotificationIcon;
     }
+
+    const hasMore = computed(() => notificationStore.hasMore);
+const loadingMore = computed(() => notificationStore.loadingMore);
+
+function loadMore() {
+  return notificationStore.loadMore();
+}
+
+function refreshNotifications() {
+  notificationStore.fetchNotifications();
+  notificationStore.fetchUnreadCount();
+}
     return {
       leftDrawerOpen,
 
@@ -459,6 +476,9 @@ export default defineComponent({
       notifications,
       goToNotification,
       getNotificationIcon,
+      hasMore,
+loadingMore,
+loadMore,
     };
   },
 });
@@ -541,6 +561,11 @@ export default defineComponent({
   background: #eff9f1;
 }
 
+.notification-more {
+  min-height: 44px;
+  font-size: 12px;
+  font-weight: 650;
+}
 /* =========================================================
    HEADER USER
 ========================================================= */
