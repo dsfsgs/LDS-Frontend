@@ -12,6 +12,13 @@ export const useEmployeeSubmissionStore = defineStore("employeeSubmission", {
     pagination: null, // 👈 idagdag
     loading: false,
     error: null,
+      summary: {
+    total_employees: 0,
+    certificate_issued: 0,
+    certificate_pending: 0,
+    form_complete: 0,
+    form_incomplete: 0,
+  },
   }),
 
   actions: {
@@ -19,50 +26,56 @@ export const useEmployeeSubmissionStore = defineStore("employeeSubmission", {
       this.error = null;
     },
 
-    async fetchEmployeeSubmission(scheduleId,params = {}) {
-      this.loading = true;
-      this.error = null;
+async fetchEmployeeSubmission(scheduleId, params = {}) {
+  this.loading = true;
+  this.error = null;
 
-      try {
-        const response = await employee_form_submission(scheduleId,params);
+  try {
+    const response = await employee_form_submission(scheduleId, params);
 
-        if (response.data.success) {
-          const paginator = response.data.data;
+    if (response.data.success) {
+      const payload = response.data.data;
+      const paginator = payload?.list;   // 👈 dating payload mismo
 
-          // i-guard: kung hindi array ang laman, huwag basta i-assign
-          this.list = Array.isArray(paginator?.data) ? paginator.data : [];
+      this.list = Array.isArray(paginator?.data) ? paginator.data : [];
 
-          this.pagination = {
-            page: paginator?.current_page ?? 1,
-            per_page: paginator?.per_page ?? 10,
-            total: paginator?.total ?? 0,
-            last_page: paginator?.last_page ?? 1,
-          };
+      this.pagination = {
+        page: paginator?.current_page ?? 1,
+        per_page: paginator?.per_page ?? 10,
+        total: paginator?.total ?? 0,
+        last_page: paginator?.last_page ?? 1,
+      };
 
-          if (!Array.isArray(paginator?.data)) {
-            console.warn("Unexpected paginator shape:", paginator);
-          }
+      // 👈 bago: summary counts
+      this.summary = {
+        total_employees: payload?.summary?.total_employees ?? 0,
+        certificate_issued: payload?.summary?.certificate_issued ?? 0,
+        certificate_pending: payload?.summary?.certificate_pending ?? 0,
+        form_complete: payload?.summary?.form_complete ?? 0,
+        form_incomplete: payload?.summary?.form_incomplete ?? 0,
+      };
 
-          return {
-            success: true,
-            message:
-              response.data.message ||
-              "Employee submission fetched successfully",
-            data: paginator,
-          };
-        } else {
-          this.error = response.data.message;
-          return { success: false, message: response.data.message };
-        }
-      } catch (err) {
-        const message =
-          err.response?.data?.message || "Failed to fetch employee";
-        this.error = message;
-        return { success: false, message };
-      } finally {
-        this.loading = false;
+      if (!Array.isArray(paginator?.data)) {
+        console.warn("Unexpected paginator shape:", paginator);
       }
-    },
+
+      return {
+        success: true,
+        message: response.data.message || "Employee submission fetched successfully",
+        data: paginator,
+      };
+    } else {
+      this.error = response.data.message;
+      return { success: false, message: response.data.message };
+    }
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to fetch employee";
+    this.error = message;
+    return { success: false, message };
+  } finally {
+    this.loading = false;
+  }
+},
 
     async fetchDocument(
       eventId,

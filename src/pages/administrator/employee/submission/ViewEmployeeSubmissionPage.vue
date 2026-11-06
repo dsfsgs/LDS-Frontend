@@ -5,7 +5,7 @@
       <div class="page-heading">
         <div class="page-heading-copy">
           <div class="page-eyebrow">
-            <q-icon name="event_note" />
+            <q-icon name="event_note" size="19px" />
             Training schedule
           </div>
           <h5>Event Schedule Details</h5>
@@ -93,35 +93,21 @@
                       Morning: {{ d.morning_in }} – {{ d.morning_out }} | Afternoon:
                       {{ d.afternoon_in }} – {{ d.afternoon_out }}
                     </span>
-                    <!-- <q-btn outline dense no-caps icon="print" label="Print Attendance" class="print-btn"
-                      :loading="isAttendanceLoading(d.schedule_date_time_id)" :disable="isAnyAttendanceLoading()"
-                      @click="printAttendance(d)" /> -->
+                  </div>
+
+                  <!-- Speakers ng date na ito -->
+                  <div class="date-speakers">
+                    <span class="detail-label">Speakers</span>
+                    <div v-if="d.speakers.length" class="speaker-list">
+                      <div v-for="sp in d.speakers" :key="sp.speakerId" class="speaker-item">
+                        <strong>{{ sp.speaker_name }}</strong> — {{ sp.position }}, {{ sp.agency }}
+                      </div>
+                    </div>
+                    <span v-else class="assessment-empty">No speaker assigned</span>
                   </div>
                 </div>
                 <div v-if="!scheduleDates.length" class="table-empty">No schedule dates.</div>
               </div>
-
-              <template v-if="speakers.length">
-                <div class="section-label">Speakers</div>
-                <div class="speaker-list">
-                  <div v-for="sp in speakers" :key="sp.speakerId" class="speaker-item">
-                    <strong>{{ sp.speaker_name }}</strong> — {{ sp.position }}, {{ sp.agency }}
-                  </div>
-                </div>
-              </template>
-              <!-- 
-              <template v-if="competencyGroups.length">
-                <div class="section-label">Competencies</div>
-                <div class="competency-groups">
-                  <div v-for="group in competencyGroups" :key="group.key" class="competency-group-block"
-                    :class="'competency-' + group.color">
-                    <div class="competency-group-title">{{ group.label }}</div>
-                    <div class="tag-row">
-                      <span v-for="(item, i) in group.items" :key="i" class="tag">{{ item }}</span>
-                    </div>
-                  </div>
-                </div>
-              </template> -->
             </div>
 
             <!-- RIGHT: OFFICES -->
@@ -136,9 +122,6 @@
                     </div>
                   </div>
                 </div>
-                <!-- <q-btn outline dense no-caps icon="print" label="Print Nomination" class="print-btn"
-                  :loading="isNominationLoading('nomination')" :disable="isAnyNominationLoading()"
-                  @click="printNomination" /> -->
               </div>
 
               <div v-if="officeList.length" class="office-list">
@@ -152,10 +135,6 @@
                   <div class="office-main">
                     <span class="office-name">{{ o.name }}</span>
                     <div class="office-stats">
-                      <!-- <span class="office-pill pill-attendees">
-                        <span class="pill-label">No. of Attendees</span>
-                        <span class="pill-value">{{ o.attendees ?? "—" }}</span>
-                      </span> -->
                       <span class="office-pill pill-nominees">
                         <span class="pill-label">Participants</span>
                         <span class="pill-value">{{ o.nominees }}</span>
@@ -170,6 +149,53 @@
         </div>
       </q-card>
     </template>
+
+    <!-- ===================== SUMMARY CARDS ===================== -->
+    <section class="statistics-grid">
+      <!-- Total -->
+      <q-card flat class="stat-card stat-card-link" v-ripple @click="filterByCard()">
+        <div class="stat-icon stat-icon-green">
+          <q-icon name="groups" size="26px" />
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Total employees</div>
+          <div class="stat-value">{{ stats.total_employees }}</div>
+        </div>
+      </q-card>
+
+      <!-- Certificate Pending -->
+      <q-card flat class="stat-card stat-card-link" v-ripple @click="filterByCard({ certificate: 'pending' })">
+        <div class="stat-icon stat-icon-yellow">
+          <q-icon name="hourglass_empty" size="26px" />
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Certificate Pending</div>
+          <div class="stat-value">{{ stats.certificate_pending }}</div>
+        </div>
+      </q-card>
+
+      <!-- Certificate Issued -->
+      <q-card flat class="stat-card stat-card-link" v-ripple @click="filterByCard({ certificate: 'issued' })">
+        <div class="stat-icon stat-icon-blue">
+          <q-icon name="task_alt" size="26px" />
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Certificate Issued</div>
+          <div class="stat-value">{{ stats.certificate_issued }}</div>
+        </div>
+      </q-card>
+
+      <!-- Incomplete form -->
+      <q-card flat class="stat-card stat-card-link" v-ripple @click="filterByCard({ form: 'incomplete' })">
+        <div class="stat-icon stat-icon-red">
+          <q-icon name="cancel" size="26px" />
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Incomplete form</div>
+          <div class="stat-value">{{ stats.form_incomplete }}</div>
+        </div>
+      </q-card>
+    </section>
 
     <!-- ===================== PARTICIPANTS ===================== -->
     <q-card flat bordered class="detail-card">
@@ -197,7 +223,6 @@
         <q-select v-model="certificateFilter" :options="certificateOptions" emit-value map-options
           label="Filter by certificate status" dense outlined clearable class="office-filter"
           @update:model-value="applyFilters" />
-          
       </div>
 
       <q-table flat :rows="participants" :columns="participantColumns" row-key="nominated_employee_id"
@@ -211,7 +236,7 @@
           </q-td>
         </template>
 
-        <!-- certificate status -->
+        <!-- form status -->
         <template #body-cell-form_status="props">
           <q-td :props="props">
             <span class="status-badge" :class="'status-' + props.row.form_status">
@@ -220,26 +245,24 @@
           </q-td>
         </template>
 
-             <template #body-cell-certificate_issued="props">
+        <!-- certificate status -->
+        <template #body-cell-certificate_issued="props">
           <q-td :props="props">
             <span class="status-badge" :class="'status-' + props.row.certificate_issued">
-              {{ props.row.certificate_issued}}
+              {{ props.row.certificate_issued }}
             </span>
           </q-td>
         </template>
 
-        <!-- action: button only, no function yet -->
+        <!-- actions -->
         <template #body-cell-action="props">
           <q-td :props="props">
             <div class="action-buttons">
-
               <q-btn flat dense round icon="visibility" color="primary"
                 :loading="isViewLoading(props.row.nominated_employee_id)" :disable="isAnyViewLoading()"
                 @click.stop="viewEmployeeInformation(props.row)">
                 <q-tooltip>View Details</q-tooltip>
-                
               </q-btn>
-
 
               <q-btn flat dense round icon="workspace_premium" color="blue"
                 :loading="isPreviewLoading(props.row.nominated_employee_id)" :disable="isAnyPreviewLoading()"
@@ -251,42 +274,41 @@
         </template>
       </q-table>
     </q-card>
-        <!-- =====================================================
-            CERTIFICATE PREVIEW DIALOG
-        ==================================================== -->
-        <q-dialog v-model="showCertificateModal" @hide="closeCertificatePreview">
-            <q-card class="certificate-preview-dialog">
-                <q-card-section class="dialog-header">
-                    <div class="dialog-title">Certificate Preview</div>
-                    <q-btn flat round dense icon="close" v-close-popup />
-                </q-card-section>
 
-                <q-separator />
+    <!-- CERTIFICATE PREVIEW DIALOG -->
+    <q-dialog v-model="showCertificateModal" @hide="closeCertificatePreview">
+      <q-card class="certificate-preview-dialog">
+        <q-card-section class="dialog-header">
+          <div class="dialog-title">Certificate Preview</div>
+          <q-btn flat round dense icon="close" v-close-popup />
+        </q-card-section>
 
-                <q-card-section class="q-pa-none certificate-body">
-                    <q-inner-loading :showing="loadingCertificate" color="primary" />
-                    <iframe v-if="certificateUrl" :src="certificateUrl" class="certificate-frame"
-                        title="Certificate Preview"></iframe>
-                </q-card-section>
+        <q-separator />
 
-                <q-separator />
+        <q-card-section class="q-pa-none certificate-body">
+          <q-inner-loading :showing="loadingCertificate" color="primary" />
+          <iframe v-if="certificateUrl" :src="certificateUrl" class="certificate-frame"
+            title="Certificate Preview"></iframe>
+        </q-card-section>
 
-                <q-card-actions align="right" class="dialog-actions">
-                    <q-btn flat no-caps label="Close" v-close-popup />
-                    <q-btn unelevated no-caps label="Send Certificate" icon="send" class="send-cert-btn"
-                        :loading="sendingCertificate" :disable="!certificateUrl" @click="sendCertificate" />
-                </q-card-actions>
+        <q-separator />
 
-            </q-card>
-        </q-dialog>
+        <q-card-actions align="right" class="dialog-actions">
+          <q-btn flat no-caps label="Close" v-close-popup />
+          <q-btn unelevated no-caps label="Send Certificate" icon="send" class="send-cert-btn"
+            :loading="sendingCertificate" :disable="!certificateUrl" @click="sendCertificate" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <EmployeeInformationModal v-model="showEmployeeModal" :employee-data="EmployeeInformation"
       :loading="loadingEmployeeInfo" @view-submission="handleViewSubmission" />
   </q-page>
 </template>
 
 <script>
-import { defineComponent, computed, onMounted, ref,watch } from "vue";
-import { useRoute,useRouter} from "vue-router";
+import { defineComponent, computed, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import LoadingState from "src/components/LoadingStatePage.vue";
 import { useEventStore } from "src/stores/eventStore";
@@ -295,6 +317,7 @@ import { useRowLoading } from "src/composables/useRowLoading";
 import EmployeeInformationModal from "src/components/employee/EmployeeInformationModal.vue";
 import { useEmployeeInformationStore } from "src/stores/administrator/employee/employeeInformationStore";
 import { useCertificationStore } from "src/stores/administrator/certification/certificateStore";
+
 export default defineComponent({
   name: "EventNominatedEmployeePage",
   components: { LoadingState, EmployeeInformationModal },
@@ -313,15 +336,38 @@ export default defineComponent({
     const { isLoading: isPreviewLoading, isAnyLoading: isAnyPreviewLoading, run: runPreview } = useRowLoading();
 
     // ------------------------------------------------------------
-    // EVENT DETAILS (no nominated employees anymore)
+    // EVENT DETAILS
     // ------------------------------------------------------------
     const loading = ref(true);
     const errorMessage = ref("");
 
     const eventInfo = computed(() => eventStore.event_schedule || {});
     const schedule = computed(() => eventInfo.value.schedule?.[0] || {});
-    const scheduleDates = computed(() => schedule.value.schedule_date_time || []);
-    const speakers = computed(() => schedule.value.speaker || []);
+
+    function timeOrDefault(value, defaultValue = "00:00") {
+      return value === null || value === undefined || value === "" ? defaultValue : value;
+    }
+
+    // bawat date ay may sariling speakers
+    const scheduleDates = computed(() =>
+      (schedule.value.schedule_date_time || []).map((d) => ({
+        ...d,
+        morning_in: timeOrDefault(d.morning_in),
+        morning_out: timeOrDefault(d.morning_out),
+        afternoon_in: timeOrDefault(d.afternoon_in),
+        afternoon_out: timeOrDefault(d.afternoon_out),
+        speakers: d.speakers || [],
+      }))
+    );
+
+    // unique na listahan ng lahat ng speakers (kung kailangan sa ibang bahagi)
+    const speakers = computed(() => {
+      const map = new Map();
+      scheduleDates.value.forEach((d) =>
+        d.speakers.forEach((sp) => map.set(sp.speakerId, sp))
+      );
+      return [...map.values()];
+    });
 
     const officeList = computed(() =>
       (schedule.value.office || [])
@@ -373,23 +419,27 @@ export default defineComponent({
     // PARTICIPANTS (separate endpoint, paginated)
     // ------------------------------------------------------------
     const participants = computed(() => employeeSubmissionStore.list);
+    const stats = computed(() => employeeSubmissionStore.summary);
     const search = ref("");
     const selectedOffice = ref(null);
+    const formStatusFilter = ref(null);
+    const certificateFilter = ref(null);
 
     const pagination = ref({ page: 1, rowsPerPage: 10, rowsNumber: 0 });
 
     const participantColumns = [
-  { name: "full_name", label: "Name", field: "full_name", align: "left" },
-  { name: "designation", label: "Position", field: "designation", align: "left" },
-  { name: "status", label: "Status", field: "status", align: "left" },
-  { name: "office", label: "Office", field: "office_abbr", align: "left" },
-  { name: "pending", label: "Pending", field: "pending", align: "center" },
-  { name: "returned", label: "Returned", field: "returned", align: "center" },
-  { name: "approved", label: "Approved", field: "approved", align: "center" },
-  { name: "form_status", label: "Form Status", field: "form_status", align: "center" },
-  { name: "certificate_issued", label: "Certificate Status", field: "certificate_issued", align: "center" },
-  { name: "action", label: "Action", field: "action", align: "center" },
-];
+      { name: "full_name", label: "Name", field: "full_name", align: "left" },
+      { name: "designation", label: "Position", field: "designation", align: "left" },
+      { name: "status", label: "Status", field: "status", align: "left" },
+      { name: "office", label: "Office", field: "office_abbr", align: "left" },
+      { name: "pending", label: "Pending", field: "pending", align: "center" },
+      { name: "returned", label: "Returned", field: "returned", align: "center" },
+      { name: "approved", label: "Approved", field: "approved", align: "center" },
+      { name: "form_status", label: "Form Status", field: "form_status", align: "center" },
+      { name: "certificate_issued", label: "Certificate Status", field: "certificate_issued", align: "center" },
+      { name: "action", label: "Action", field: "action", align: "center" },
+    ];
+
     async function loadParticipants() {
       const result = await employeeSubmissionStore.fetchEmployeeSubmission(scheduleId, {
         page: pagination.value.page,
@@ -442,12 +492,36 @@ export default defineComponent({
       return applyOfficeFilter(selectedOffice.value === office ? null : office);
     }
 
+    const formStatusOptions = [
+      { label: "Complete", value: "complete" },
+      { label: "Incomplete", value: "incomplete" },
+    ];
+
+    const certificateOptions = [
+      { label: "Issued", value: "issued" },
+      { label: "Pending", value: "pending" },
+    ];
+
+    function applyFilters() {
+      pagination.value.page = 1;
+      return loadParticipants();
+    }
+
+    // click sa stat card: i-set ang filter
+    function filterByCard({ form, certificate } = {}) {
+      formStatusFilter.value = form ?? null;
+      certificateFilter.value = certificate ?? null;
+      return applyFilters();
+    }
+
+    // ------------------------------------------------------------
+    // EMPLOYEE INFORMATION MODAL
+    // ------------------------------------------------------------
     const showEmployeeModal = ref(false);
     const EmployeeInformation = ref({});
     const loadingEmployeeInfo = ref(false);
 
     async function viewEmployeeInformation(row) {
-      // loadingEmployeeInfo.value = true;
       return runView(row.nominated_employee_id, async () => {
         const result = await employeeInformationStore.fetchEmployeeInformation(row.nominated_employee_id);
 
@@ -464,9 +538,9 @@ export default defineComponent({
             scrollbarPadding: false,
           });
         }
-      })
-
+      });
     }
+
     function handleViewSubmission(row) {
       Swal.fire({
         title: "No preview available",
@@ -476,141 +550,127 @@ export default defineComponent({
       });
     }
 
-    const formStatusFilter = ref(null);
-    const certificateFilter = ref(null);
+    // ------------------------------------------------------------
+    // CERTIFICATE PREVIEW / SEND
+    // ------------------------------------------------------------
+    const showCertificateModal = ref(false);
+    const certificateUrl = ref(null);
+    const loadingCertificate = ref(false);
+    const previewingRow = ref(null);
+    const sendingCertificate = ref(false);
 
-    const formStatusOptions = [
-      { label: "Complete", value: "complete" },
-      { label: "Incomplete", value: "incomplete" },
-    ];
+    async function certificatePreview(row) {
+      previewingRow.value = row;
+      showCertificateModal.value = true;
 
-    const certificateOptions = [
-      { label: "Issued", value: "issued" },
-      { label: "Pending", value: "pending" },
-    ];
+      return runPreview(row.nominated_employee_id, async () => {
+        loadingCertificate.value = true;
+        const result = await certificationStore.fetchCertificate(row.nominated_employee_id);
 
-    function applyFilters() {
-      pagination.value.page = 1;
-      return loadParticipants();
+        loadingCertificate.value = false;
+
+        if (result.success) {
+          const rawUrl = window.URL.createObjectURL(
+            new Blob([result.blob], { type: "application/pdf" })
+          );
+          certificateUrl.value = `${rawUrl}#zoom=60`;
+        } else {
+          showCertificateModal.value = false;
+          Swal.fire({
+            title: "Failed",
+            text: result.message || "Unable to preview certificate.",
+            icon: "error",
+            scrollbarPadding: false,
+          });
+        }
+      });
     }
 
-     const showCertificateModal = ref(false);
-        const certificateUrl = ref(null);
-        const loadingCertificate = ref(false);
-        const previewingRow = ref(null);   // 👈 bagong ref — itatago kung sinong employee ang preview
-        const sendingCertificate = ref(false);   // 👈 idagdag — dating wala
+    function closeCertificatePreview() {
+      if (certificateUrl.value) {
+        window.URL.revokeObjectURL(certificateUrl.value);
+        certificateUrl.value = null;
+      }
+      previewingRow.value = null;
+    }
 
+    async function sendCertificate() {
+      if (!previewingRow.value) return;
 
-        async function certificatePreview(row) {
-            previewingRow.value = row;
-            showCertificateModal.value = true;
-            // loadingCertificate.value = true;
+      const row = previewingRow.value;
 
-            return runPreview(row.nominated_employee_id, async () => {
-                loadingCertificate.value = true;
-                const result = await certificationStore.fetchCertificate(row.nominated_employee_id);
+      const confirm = await Swal.fire({
+        title: "Certificate",
+        text: `Are you want to send Certificate ${row.full_name}?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Send",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#18b64d",
+        cancelButtonColor: "#9e9e9e",
+        reverseButtons: true,
+        scrollbarPadding: false,
+        heightAuto: false,
+      });
 
-                loadingCertificate.value = false;
+      if (!confirm.isConfirmed) return;
 
-                if (result.success) {
-                    const rawUrl = window.URL.createObjectURL(
-                        new Blob([result.blob], { type: "application/pdf" })
-                    );
-                    certificateUrl.value = `${rawUrl}#zoom=60`;   // 👈 idagdag ang fragment
-                }
-                else {
-                    showCertificateModal.value = false;
-                    Swal.fire({
-                        title: "Failed",
-                        text: result.message || "Unable to preview certificate.",
-                        icon: "error",
-                        scrollbarPadding: false,
-                    });
-                }
-            });
+      sendingCertificate.value = true;
 
-        }
+      const result = await certificationStore.sendCertificate(row.nominated_employee_id);
 
-             function closeCertificatePreview() {
-            if (certificateUrl.value) {
-                window.URL.revokeObjectURL(certificateUrl.value);
-                certificateUrl.value = null;
-            }
-            previewingRow.value = null;
-        }
-         async function sendCertificate() {
-            if (!previewingRow.value) return;
+      sendingCertificate.value = false;
 
-            const row = previewingRow.value;
+      if (result.success) {
+        showCertificateModal.value = false;
 
-            const confirm = await Swal.fire({
-                title: "Certificate",
-                text: `Are you want to send Certificate ${row.full_name}?`,
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonText: "Send",
-                cancelButtonText: "Cancel",
-                confirmButtonColor: "#18b64d",
-                cancelButtonColor: "#9e9e9e",
-                reverseButtons: true,
-                scrollbarPadding: false,
-                heightAuto: false,
-            });
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: "Certificate sent successfully.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+          scrollbarPadding: false,
+        });
 
-            if (!confirm.isConfirmed) return;
+        // i-refresh ang listahan at summary para ma-update ang certificate status
+        await loadParticipants();
+      } else {
+        Swal.fire({
+          title: "Failed",
+          text: result.message || "Unable to send certificate.",
+          icon: "error",
+          scrollbarPadding: false,
+        });
+      }
+    }
 
-            sendingCertificate.value = true;
+    // ------------------------------------------------------------
+    // OPEN FROM NOTIFICATION
+    // ------------------------------------------------------------
+    async function openFromNotification() {
+      const id = route.query.nominated_employee_id;
+      if (!id) return;
 
-            const result = await certificationStore.sendCertificate(row.nominated_employee_id);
+      router.replace({ query: {} }); // linisin ang URL para hindi mag-reopen
 
-            sendingCertificate.value = false;
+      const nominatedId = Number(id);
 
-            if (result.success) {
-                showCertificateModal.value = false;
+      const row = employeeSubmissionStore.list.find(
+        (r) => Number(r.nominated_employee_id) === nominatedId
+      );
 
-                Swal.fire({
-                    toast: true,
-                    position: "top-end",
-                    icon: "success",
-                    title: "Certificate sent successfully.",
-                    showConfirmButton: false,
-                    timer: 2000,
-                    timerProgressBar: true,
-                    scrollbarPadding: false,
-                });
+      await viewEmployeeInformation(row ?? { nominated_employee_id: nominatedId });
+    }
 
-                // i-refresh ang listahan para ma-update yung certificate_status
-                await loadParticipants();
-            } else {
-                Swal.fire({
-                    title: "Failed",
-                    text: result.message || "Unable to send certificate.",
-                    icon: "error",
-                    scrollbarPadding: false,
-                });
-            }
-        }
-           async function openFromNotification() {
-            const id = route.query.nominated_employee_id;
-            if (!id) return;
-
-            router.replace({ query: {} }); // linisin ang URL para hindi mag-reopen
-
-            const nominatedId = Number(id);
-
-            // hanapin ang row sa listahan para pareho ang id type sa button
-            const row = employeeSubmissionStore.list.find(
-                (r) => Number(r.nominated_employee_id) === nominatedId
-            );
-
-            await viewEmployeeInformation(row ?? { nominated_employee_id: nominatedId });
-        }
-                watch(() => route.query.nominated_employee_id, openFromNotification);
+    watch(() => route.query.nominated_employee_id, openFromNotification);
 
     onMounted(() => {
       loadEventDetails();
       loadParticipants();
-            openFromNotification();
+      openFromNotification();
     });
 
     return {
@@ -657,11 +717,13 @@ export default defineComponent({
       certificatePreview,
       closeCertificatePreview,
       showCertificateModal,
- certificateUrl,
-              sendCertificate,
-            sendingCertificate,
-            loadingCertificate
+      certificateUrl,
+      sendCertificate,
+      sendingCertificate,
+      loadingCertificate,
 
+      stats,
+      filterByCard,
     };
   },
 });
@@ -687,25 +749,70 @@ export default defineComponent({
   margin-bottom: 4px;
 }
 
-.back-btn {
-  padding: 0;
-  margin-bottom: 6px;
-  color: #060707;
-  font-size: 14px;
-  font-weight: 410;
+.page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 26px;
+  border: 1px solid #e3eaf0;
+  border-radius: 16px;
+  background: linear-gradient(115deg, #ffffff 0%, #f5f9fc 100%);
+  box-shadow: 0 5px 18px rgba(25, 53, 74, 0.045);
+}
+
+.page-heading-copy {
+  min-width: 0;
+}
+
+.page-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: green;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.page-eyebrow .q-icon {
+  font-size: 15px;
 }
 
 .page-header h5 {
-  margin: 5px 0 3px;
+  margin: 6px 0 5px;
   color: #19354a;
-  font-size: 18px;
+  font-size: 23px;
   font-weight: 750;
+  line-height: 1.25;
 }
 
 .page-header p {
+  max-width: 620px;
   margin: 0;
   color: #718089;
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.back-btn {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 12px;
+  margin: 0;
+  border: 1px solid #dfe7ed;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #31546b;
+  font-size: 14px;
+  font-weight: 650;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.back-btn:hover {
+  border-color: #bfd2e1;
+  background: #f4f8fb;
 }
 
 /* =========================================================
@@ -732,26 +839,37 @@ export default defineComponent({
 ========================================================= */
 .detail-card {
   overflow: hidden;
-  border-radius: 13px;
+  border-color: #e3eaf0;
+  border-radius: 16px;
   background: #ffffff;
-  box-shadow: 0 3px 12px rgba(30, 70, 42, 0.055);
+  box-shadow: 0 5px 18px rgba(25, 53, 74, 0.05);
 }
 
 .section-head {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 16px 20px;
   border-bottom: 1px solid #edf1ef;
   background: #fcfdfc;
-   flex-wrap: wrap;
 }
-/* .section-head {
-  padding: 18px 22px;
-  background: linear-gradient(110deg, #fbfdff 0%, #f6f9fb 100%);
-} */
+
 .section-head-text {
   flex: 1;
+}
+
+.section-heading,
+.office-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.section-icon {
+  flex: 0 0 auto;
+  color: green;
+  font-size: 19px;
 }
 
 .section-title {
@@ -763,22 +881,21 @@ export default defineComponent({
 .section-sub {
   margin-top: 3px;
   margin-left: 28px;
-  font-size: 14px;
   color: #585c5e;
- flex-wrap: wrap;
+  font-size: 14px;
 }
 
 /* =========================================================
    SCHEDULE DETAILS — TWO COLUMN LAYOUT
 ========================================================= */
 .detail-body {
-  padding: 20px 22px;
+  padding: 22px;
 }
 
 .schedule-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
-  gap: 28px;
+  grid-template-columns: minmax(0, 1.65fr) minmax(290px, 1fr);
+  gap: 24px;
   align-items: start;
 }
 
@@ -787,45 +904,57 @@ export default defineComponent({
 }
 
 .event-title-lg {
-  margin: 0;
+  margin: 4px 0 0;
   color: #172431;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 750;
   line-height: 1.4;
+  letter-spacing: -0.2px;
 }
 
 .detail-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px 24px;
-  margin-top: 20px;
-  padding-bottom: 18px;
+  gap: 10px;
+  margin-top: 18px;
+  padding-bottom: 20px;
   border-bottom: 1px solid #eef2f1;
 }
 
 .detail-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  min-width: 0;
+  gap: 5px;
+  padding: 11px 13px;
+  border: 1px solid #e9eef2;
+  border-radius: 10px;
+  background: #fbfcfd;
+}
+
+.detail-item-wide {
+  grid-column: 1 / -1;
 }
 
 .detail-label {
-  color: #94a3ab;
-  font-size: 9.5px;
+  color: #8193a0;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.65px;
   text-transform: uppercase;
 }
 
 .detail-value {
-  color: #2c3e4a;
+  overflow-wrap: anywhere;
+  color: #263d4c;
   font-size: 13px;
   font-weight: 550;
+  line-height: 1.45;
 }
 
 .section-label {
-  margin: 22px 0 10px;
-  color: #94a3ab;
+  margin: 24px 0 10px;
+  color: #607987;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -837,12 +966,12 @@ export default defineComponent({
 ========================================================= */
 .office-col {
   position: sticky;
-  top: 16px;
-  padding: 14px;
-  border: 1px solid #edf1ef;
-  border-radius: 12px;
-  background: #fcfdfc;
+  top: 20px;
   margin-top: 99px;
+  padding: 16px;
+  border: 1px solid #e3eaf0;
+  border-radius: 14px;
+  background: #f9fbfc;
 }
 
 .office-head {
@@ -850,26 +979,30 @@ export default defineComponent({
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+}
 
+.office-heading {
+  gap: 8px;
 }
 
 .office-head-title {
   color: #19354a;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 750;
 }
 
 .office-head-count {
+  display: block;
+  margin: 2px 0 0;
   color: #94a3ab;
-  font-size: 10.5px;
-  margin-left: 10px;
+  font-size: 10px;
 }
 
 .office-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 560px;
+  gap: 9px;
+  max-height: 620px;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -878,11 +1011,12 @@ export default defineComponent({
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid #e8eceb;
-  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid #e4ebef;
+  border-radius: 11px;
   background: #ffffff;
   box-shadow: 0 1px 3px rgba(30, 70, 42, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .office-dot {
@@ -903,9 +1037,9 @@ export default defineComponent({
 
 .office-name {
   color: #2c3e4a;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.45;
   text-transform: uppercase;
 }
 
@@ -919,7 +1053,7 @@ export default defineComponent({
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 4px 3px 10px;
+  padding: 4px 5px 4px 9px;
   border-radius: 20px;
   background: #eef1f2;
   color: #94a3ab;
@@ -937,7 +1071,6 @@ export default defineComponent({
   text-align: center;
 }
 
-/* attendees — neutral blue */
 .pill-attendees {
   background: #e7f0fb;
   color: #2b6cb0;
@@ -983,6 +1116,21 @@ export default defineComponent({
   color: #b45f06;
 }
 
+.office-item.is-clickable {
+  cursor: pointer;
+}
+
+.office-item.is-clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(30, 70, 42, 0.12);
+}
+
+.office-item.is-active {
+  border-color: #8db8dc;
+  background: #f1f7fc;
+  box-shadow: 0 0 0 2px rgba(43, 108, 176, 0.12);
+}
+
 /* =========================================================
    COMPETENCY GROUPS
 ========================================================= */
@@ -1011,7 +1159,6 @@ export default defineComponent({
   margin-top: 0;
 }
 
-/* CORE — blue */
 .competency-core {
   border-left-color: #2b6cb0;
 }
@@ -1025,7 +1172,6 @@ export default defineComponent({
   color: #2b6cb0;
 }
 
-/* TECHNICAL — purple */
 .competency-technical {
   border-left-color: #7c3aed;
 }
@@ -1039,7 +1185,6 @@ export default defineComponent({
   color: #7c3aed;
 }
 
-/* LEADERSHIP — amber */
 .competency-leadership {
   border-left-color: #d97706;
 }
@@ -1061,7 +1206,7 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .date-item {
@@ -1070,10 +1215,10 @@ export default defineComponent({
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #eef2f1;
-  background: #fafcfb;
+  padding: 12px 14px;
+  border: 1px solid #e5ebef;
+  border-radius: 10px;
+  background: #fbfcfd;
   color: #2c3e4a;
   font-size: 12px;
 }
@@ -1083,12 +1228,42 @@ export default defineComponent({
 }
 
 .speaker-item {
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #eef2f1;
-  background: #fafcfb;
+  padding: 12px 14px;
+  border: 1px solid #e5ebef;
+  border-radius: 10px;
+  background: #fbfcfd;
   color: #2c3e4a;
   font-size: 12px;
+}
+
+.date-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.date-speakers {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed #e5ebef;
+}
+
+.date-speakers .speaker-list {
+  margin-top: 0;
+}
+
+.date-speakers .speaker-item {
+  background: #ffffff;
+}
+
+.assessment-empty {
+  color: #aab5bb;
+  font-size: 11.5px;
 }
 
 .tag-row {
@@ -1106,19 +1281,13 @@ export default defineComponent({
   font-weight: 600;
 }
 
-.date-right {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
 .print-btn {
+  min-height: 34px;
   padding: 4px 14px;
-  border: 1px solid #d5d5d5;
+  border: 1px solid #d5e1e9;
   border-radius: 9px;
   background: #ffffff;
-  color: #207fc9;
+  color: #24699b;
   font-size: 12px;
   font-weight: 600;
 }
@@ -1129,298 +1298,27 @@ export default defineComponent({
 }
 
 .print-btn:hover {
-  background: #f5f7f6;
-}
-
-/* =========================================================
-   NOMINATION TABLE
-========================================================= */
-.detail-table {
-  box-shadow: none;
-  padding: 0 12px;
-}
-
-.dialog-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 16px 18px;
-}
-
-.row-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  white-space: nowrap;
-}
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-@media (max-width: 900px) {
-  .schedule-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .office-col {
-    position: static;
-  }
-}
-
-@media (max-width: 650px) {
-  .event-page {
-    padding: 14px;
-  }
-
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.office-filter {
-  min-width: 260px;
-  max-width: 360px;
-}
-
-.office-item.is-clickable {
-  cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.office-item.is-clickable:hover {
-  box-shadow: 0 2px 8px rgba(30, 70, 42, 0.12);
-}
-
-.office-item.is-active {
-  border-color: #2b6cb0;
-  background: #f3f8fd;
-  box-shadow: 0 0 0 1px #2b6cb0;
-}
-
-.page-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 22px 26px;
-  border: 1px solid #e3eaf0;
-  border-radius: 16px;
-  background: linear-gradient(115deg, #ffffff 0%, #f5f9fc 100%);
-  box-shadow: 0 5px 18px rgba(25, 53, 74, 0.045);
-}
-
-.page-heading-copy {
-  min-width: 0;
-}
-
-.page-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #2b6cb0;
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-}
-
-.page-eyebrow .q-icon {
-  font-size: 15px;
-}
-
-.page-header h5 {
-  margin: 6px 0 5px;
-  font-size: 23px;
-  line-height: 1.25;
-}
-
-.page-header p {
-  max-width: 620px;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.back-btn {
-  flex: 0 0 auto;
-  min-height: 38px;
-  padding: 0 12px;
-  margin: 0;
-  border: 1px solid #dfe7ed;
-  border-radius: 9px;
-  background: #ffffff;
-  color: #31546b;
-  font-weight: 650;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.back-btn:hover {
-  border-color: #bfd2e1;
-  background: #f4f8fb;
-}
-
-.detail-card {
-  border-color: #e3eaf0;
-  border-radius: 16px;
-  box-shadow: 0 5px 18px rgba(25, 53, 74, 0.05);
-}
-
-
-
-.section-heading,
-.office-heading {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.section-icon {
-  flex: 0 0 auto;
-  color: #2b6cb0;
-  font-size: 19px;
-}
-
-
-
-
-.detail-body {
-  padding: 22px;
-}
-
-.schedule-layout {
-  grid-template-columns: minmax(0, 1.65fr) minmax(290px, 1fr);
-  gap: 24px;
-}
-
-.event-title-lg {
-  margin-top: 4px;
-  font-size: 20px;
-  letter-spacing: -0.2px;
-}
-
-.detail-grid {
-  gap: 10px;
-  margin-top: 18px;
-  padding-bottom: 20px;
-}
-
-.detail-item {
-  min-width: 0;
-  gap: 5px;
-  padding: 11px 13px;
-  border: 1px solid #e9eef2;
-  border-radius: 10px;
-  background: #fbfcfd;
-}
-
-.detail-item-wide {
-  grid-column: 1 / -1;
-}
-
-.detail-label {
-  color: #8193a0;
-  font-size: 9px;
-  letter-spacing: 0.65px;
-}
-
-.detail-value {
-  overflow-wrap: anywhere;
-  color: #263d4c;
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.section-label {
-  margin-top: 24px;
-  color: #607987;
-}
-
-.office-col {
-  top: 20px;
-  padding: 16px;
-  border-color: #e3eaf0;
-  border-radius: 14px;
-  background: #f9fbfc;
-}
-
-.office-heading {
-  gap: 8px;
-}
-
-.office-head-title {
-  font-size: 14px;
-}
-
-.office-head-count {
-  display: block;
-  margin: 2px 0 0;
-  font-size: 10px;
-}
-
-.office-list {
-  max-height: 620px;
-  gap: 9px;
-}
-
-.office-item {
-  padding: 12px;
-  border-color: #e4ebef;
-  border-radius: 11px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
-}
-
-.office-item.is-clickable:hover {
-  transform: translateY(-1px);
-}
-
-.office-item.is-active {
-  border-color: #8db8dc;
-  background: #f1f7fc;
-  box-shadow: 0 0 0 2px rgba(43, 108, 176, 0.12);
-}
-
-.office-name {
-  font-size: 11.5px;
-  line-height: 1.45;
-}
-
-.office-pill {
-  padding: 4px 5px 4px 9px;
-}
-
-.date-list,
-.speaker-list {
-  margin-top: 10px;
-}
-
-.date-item,
-.speaker-item {
-  padding: 12px 14px;
-  border-color: #e5ebef;
-  border-radius: 10px;
-  background: #fbfcfd;
-}
-
-.date-right {
-  justify-content: flex-end;
-}
-
-.print-btn {
-  min-height: 34px;
-  border-color: #d5e1e9;
-  color: #24699b;
-}
-
-.print-btn:hover {
   border-color: #b7d0e2;
   background: #f2f8fc;
 }
 
+/* =========================================================
+   FILTERS
+========================================================= */
 .office-filter {
   min-width: 240px;
+  max-width: 360px;
 }
 
+.search-filter {
+  min-width: 220px;
+}
+
+/* =========================================================
+   PARTICIPANTS TABLE
+========================================================= */
 .detail-table {
+  box-shadow: none;
   padding: 0 18px 12px;
 }
 
@@ -1433,7 +1331,6 @@ export default defineComponent({
 }
 
 .detail-table :deep(thead th) {
-
   font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.45px;
@@ -1449,14 +1346,160 @@ export default defineComponent({
   background: #f8fbfd;
 }
 
+.approval-count {
+  color: #405967;
+  font-weight: 700;
+}
 
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   CERTIFICATE DIALOG
+========================================================= */
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 18px;
+}
+
+.certificate-preview-dialog {
+  width: 1500px;
+  max-width: 95vw;
+  height: 85vh;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.certificate-preview-dialog :deep(.certificate-body) {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.certificate-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.dialog-title {
+  color: #19354a;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.dialog-actions {
+  padding: 12px 16px;
+  background: #fcfdfc;
+}
+
+.send-cert-btn {
+  background: linear-gradient(135deg, #18b64d, #0ca344);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 0 16px;
+}
+
+/* =========================================================
+   STAT CARDS
+========================================================= */
+.statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.stat-card {
+  position: relative;
+  min-height: 116px;
+  display: flex;
+  align-items: center;
+  padding: 18px;
+  border-radius: 13px;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(30, 70, 42, 0.055);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 18px rgba(30, 70, 42, 0.09);
+}
+
+.stat-card-link {
+  cursor: pointer;
+}
+
+.stat-icon {
+  width: 62px;
+  height: 62px;
+  min-width: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  color: #ffffff;
+}
+
+.stat-icon-green {
+  background: linear-gradient(135deg, #11998E, #38EF7D);
+}
+
+.stat-icon-blue {
+  background: linear-gradient(135deg, #159bf0, #0879d8);
+}
+
+.stat-icon-yellow {
+  background: linear-gradient(135deg, #ffbe35, #f4a900);
+}
+
+.stat-icon-red {
+  background: linear-gradient(135deg, #ef5350, #d83d3d);
+}
+
+.stat-content {
+  margin-left: 15px;
+}
+
+.stat-label {
+  color: #687a83;
+  font-size: 12px;
+}
+
+.stat-value {
+  margin-top: 2px;
+  color: #14283b;
+  font-size: 27px;
+  line-height: 1.1;
+  font-weight: 750;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 @media (max-width: 900px) {
   .schedule-layout {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .office-col {
-    top: auto;
+    position: static;
+    margin-top: 0;
+  }
+
+  .statistics-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -1483,12 +1526,7 @@ export default defineComponent({
 
   .section-head {
     align-items: flex-start;
-    flex-wrap: wrap;
     padding: 16px;
-  }
-
-  .section-sub {
-    margin-left: 28px;
   }
 
   .detail-body {
@@ -1509,13 +1547,18 @@ export default defineComponent({
     gap: 10px;
   }
 
-  .office-filter {
+  .office-filter,
+  .search-filter {
     width: 100%;
     max-width: none;
   }
 
   .detail-table {
     padding: 0 8px 8px;
+  }
+
+  .statistics-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1528,57 +1571,4 @@ export default defineComponent({
     grid-column: auto;
   }
 }
-
-.search-filter {
-  min-width: 220px;
-}
-
-.approval-count {
-  color: #405967;
-  font-weight: 700;
-}
-
-
-.certificate-preview-dialog {
-    width: 1500px;
-    max-width: 95vw;
-    height: 85vh;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.certificate-preview-dialog :deep(.certificate-body) {
-    flex: 1;
-    min-height: 0;
-    /* kailangan ito para gumana nang tama ang flex sa loob ng scroll container */
-    overflow: hidden;
-}
-
-.certificate-frame {
-    width: 100%;
-    height: 100%;
-    /* 👈 dating 78vh, palitan ng 100% para sumunod na lang sa parent nito */
-    border: none;
-    display: block;
-}
-.dialog-title {
-    color: #19354a;
-
-    font-size: 16px;
-    font-weight: 750;
-}
-.dialog-actions {
-  padding: 12px 16px;
-  background: #fcfdfc;
-}
-.send-cert-btn {
-    background: linear-gradient(135deg, #18b64d, #0ca344);
-    color: #ffffff;
-    border-radius: 8px;
-    padding: 0 16px;
-}
-
-/*  */
 </style>
