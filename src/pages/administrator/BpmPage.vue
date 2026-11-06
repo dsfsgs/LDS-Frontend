@@ -42,7 +42,7 @@
                         <template #body-cell-actions="props">
                             <q-td :props="props">
                                 <div class="action-buttons">
-                                    <q-btn flat round dense icon="visibility" class="action-view"
+                                    <q-btn flat round dense icon="visibility" color="positive"
                                         :loading="isViewLoading(props.row.id)"
                                         :disable="isAnyViewLoading() && !isViewLoading(props.row.id)"
                                         @click="openView(props.row)">
@@ -534,9 +534,7 @@ export default defineComponent({
     gap: 2px;
 }
 
-.action-view {
-    color: #4b7c94;
-}
+
 
 .app-table-empty {
     width: 100%;
