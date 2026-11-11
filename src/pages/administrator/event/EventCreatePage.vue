@@ -32,7 +32,7 @@
 
         <div class="section-divider"></div>
 
-        <div class="section-title forms-title">Forms</div>
+        <!-- <div class="section-title forms-title">Forms</div>
         <div class="competency-group">
           <div class="forms-list">
             <q-checkbox v-for="option in formsOptions" :key="option.value" v-model="eventForm.forms" :val="option.value"
@@ -48,6 +48,69 @@
             <q-checkbox v-for="option in evaluationOptions" :key="option.value" v-model="eventForm.evaluations"
               :val="option.value" :label="option.label" color="green" keep-color disable dense
               class="competency-checkbox" />
+          </div>
+        </div> -->
+        <!-- FORM SCHEDULE -->
+        <div class="form-schedule">
+          <LabeledField label="Form Open Time">
+            <q-input :model-value="formatFormDate(eventForm.form_open_date)" outlined dense readonly
+              placeholder="Select open date & time" class="custom-input">
+              <template #append>
+                <q-icon v-if="eventForm.form_open_date" name="close" class="time-picker-icon"
+                  @click.stop="eventForm.form_open_date = null" />
+                <q-icon v-else name="event" class="time-picker-icon">
+                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                    <div class="row no-wrap">
+                      <q-date v-model="eventForm.form_open_date" mask="YYYY-MM-DD HH:mm" color="green" />
+                      <q-time v-model="eventForm.form_open_date" mask="YYYY-MM-DD HH:mm" color="green" />
+                    </div>
+                    <div class="row items-center justify-end q-pa-sm">
+                      <q-btn v-close-popup label="Done" color="green" flat no-caps />
+                    </div>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+          </LabeledField>
+
+          <LabeledField label="Form Due Time">
+            <q-input :model-value="formatFormDate(eventForm.form_due_date)" outlined dense readonly
+              placeholder="Select due date & time" class="custom-input">
+              <template #append>
+                <q-icon v-if="eventForm.form_due_date" name="close" class="time-picker-icon"
+                  @click.stop="eventForm.form_due_date = null" />
+                <q-icon v-else name="event" class="time-picker-icon">
+                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                    <div class="row no-wrap">
+                      <q-date v-model="eventForm.form_due_date" mask="YYYY-MM-DD HH:mm" color="green" />
+                      <q-time v-model="eventForm.form_due_date" mask="YYYY-MM-DD HH:mm" color="green" />
+                    </div>
+                    <div class="row items-center justify-end q-pa-sm">
+                      <q-btn v-close-popup label="Done" color="green" flat no-caps />
+                    </div>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+          </LabeledField>
+        </div>
+        <div class="section-title forms-title">Forms</div>
+        <div class="competency-group">
+          <div class="forms-list">
+            <q-checkbox v-for="option in formsOptions" :key="option.value" v-model="eventForm.forms" :val="option.value"
+              :label="option.label" color="green" keep-color dense class="competency-checkbox" />
+          </div>
+        </div>
+
+
+
+        <div class="section-divider"></div>
+
+        <div class="section-title forms-title">Evaluation</div>
+        <div class="competency-group">
+          <div class="forms-list">
+            <q-checkbox v-for="option in evaluationOptions" :key="option.value" v-model="eventForm.evaluations"
+              :val="option.value" :label="option.label" color="green" keep-color dense class="competency-checkbox" />
           </div>
         </div>
 
@@ -77,6 +140,22 @@
           <q-btn outline no-caps icon="open_in_new" label="Create Google Form" class="create-assessment-btn"
             @click="openGoogleForms" />
         </div>
+        <div class="arms-card" :class="eventForm.is_assessment_open ? 'arms-card--on' : 'arms-card--off'">
+          <div class="arms-card-info">
+            <q-icon :name="eventForm.is_assessment_open ? 'lock_open' : 'lock'"
+              :color="eventForm.is_assessment_open ? 'green-7' : 'red-7'" size="20px" class="arms-card-icon" />
+            <div>
+              <!-- <div class="arms-card-title">Open Assessment</div> -->
+              <div class="arms-card-desc">
+                {{ eventForm.is_assessment_open
+                  ? 'The assessment is open. Employees can now answer the Pre Test and Post Test.'
+                  : 'The assessment is closed. Turn this on to make it available to employees.' }}
+              </div>
+            </div>
+          </div>
+          <q-toggle v-model="eventForm.is_assessment_open" :color="eventForm.is_assessment_open ? 'green' : 'red'"
+            keep-color />
+        </div>
 
         <LabeledField label="Pre Test">
           <q-input v-model="eventForm.pre_test_assessment" type="url" outlined dense
@@ -87,6 +166,7 @@
           <q-input v-model="eventForm.post_test_assessment" type="url" outlined dense
             placeholder="e.g. https://forms.gle/xyz789ABC" class="custom-input" />
         </LabeledField>
+
       </template>
 
       <!-- =======================================================
@@ -151,7 +231,23 @@
           </LabeledField>
 
           <!-- Full width, nasa labas ng two-column grid cell -->
+          <!-- Full width, nasa labas ng two-column grid cell -->
           <div class="qualifications-field">
+            <!-- SALARY GRADE ROW -->
+            <div class="sg-row">
+              <div class="sg-row-info">
+                <span class="sg-row-label">Salary Grade:</span>
+                <q-chip v-if="sgLabel" dense removable color="green-1" text-color="green-9" class="sg-chip"
+                  @remove="clearSg">
+                  {{ sgLabel }}
+                </q-chip>
+                <span v-else class="sg-row-empty">Not set</span>
+              </div>
+
+              <q-btn outline no-caps dense icon="tune" :label="sgLabel ? 'Edit SG' : 'Set Salary Grade'"
+                class="sg-set-btn" @click="openSgDialog" />
+            </div>
+
             <LabeledField label="Qualifications">
               <q-input v-model="eventForm.qualifications" outlined type="textarea" rows="4"
                 placeholder="Enter qualifications" class="qualifications-input" />
@@ -241,7 +337,9 @@
                             @click.stop="schedule.morning_in = null" />
                           <q-icon v-else name="access_time" class="time-picker-icon">
                             <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                              <q-time v-model="schedule.morning_in" mask="HH:mm" color="green">
+                              <!-- Morning In: AM only -->
+                              <q-time v-model="schedule.morning_in" mask="HH:mm" color="green" :options="amOnly">
+
                                 <div class="row items-center justify-end">
                                   <q-btn v-close-popup label="Close" color="green" flat no-caps />
                                 </div>
@@ -277,7 +375,7 @@
                             @click.stop="schedule.afternoon_in = null" />
                           <q-icon v-else name="access_time" class="time-picker-icon">
                             <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                              <q-time v-model="schedule.afternoon_in" mask="HH:mm" color="green">
+                              <q-time v-model="schedule.afternoon_in" mask="HH:mm" color="green" :options="pmOnly">
                                 <div class="row items-center justify-end">
                                   <q-btn v-close-popup label="Close" color="green" flat no-caps />
                                 </div>
@@ -325,8 +423,8 @@
                     <q-input v-model="speaker.agency" outlined dense placeholder="Agency"
                       class="custom-input speaker-agency-input" />
 
-                    <q-btn v-if="schedule.speakers.length > 1" flat round dense icon="close"
-                      class="remove-speaker-btn" @click="removeScheduleSpeaker(schedule, sIndex)">
+                    <q-btn v-if="schedule.speakers.length > 1" flat round dense icon="close" class="remove-speaker-btn"
+                      @click="removeScheduleSpeaker(schedule, sIndex)">
                       <q-tooltip>Remove Speaker</q-tooltip>
                     </q-btn>
                   </div>
@@ -792,6 +890,33 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <!-- SALARY GRADE DIALOG -->
+    <q-dialog v-model="showSgDialog">
+      <q-card class="sg-dialog">
+        <EventDialogHeader title="Set Salary Grade" subtitle="Set the SG range allowed for this event (1 to 33)." />
+
+        <q-separator />
+
+        <q-card-section class="sg-dialog-body">
+          <div class="sg-range">
+            <q-input v-model.number="sgDraft.from" type="number" outlined dense min="0" max="50" label="From"
+              class="sg-input" />
+            <span class="sg-separator"> - </span>
+            <q-input v-model.number="sgDraft.to" type="number" outlined dense min="0" max="50" label="To"
+              class="sg-input" />
+          </div>
+
+          <div v-if="sgError" class="sg-error">{{ sgError }}</div>
+          <!-- <div class="sg-hint">Pwedeng pareho ang From at To kung isang SG lang (e.g. SG 15 - 15).</div> -->
+        </q-card-section>
+
+        <q-card-actions align="right" class="dialog-actions">
+          <q-btn flat no-caps label="Clear" color="red" @click="clearSgFromDialog" />
+          <q-btn flat no-caps label="Cancel" v-close-popup />
+          <q-btn unelevated no-caps label="Apply" class="save-dialog-btn" @click="applySg" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -880,10 +1005,17 @@ export default defineComponent({
       schedules: [],
       departments: [],
       employees: [],
-      forms: formsOptions.map((o) => o.value),            // naka-check lahat by default
-      evaluations: evaluationOptions.map((o) => o.value),
+      // forms: formsOptions.map((o) => o.value),            // naka-check lahat by default
+      // evaluations: evaluationOptions.map((o) => o.value),
+      forms: [],
+      evaluations: [],
       pre_test_assessment: null,
-      post_test_assessment: null
+      post_test_assessment: null,
+      is_assessment_open: false,
+      form_open_date: null,
+      form_open_date: null,
+      sg_from: null,
+      sg_to: null,
     });
 
     // =========================================================
@@ -1299,20 +1431,22 @@ export default defineComponent({
           rawDate: date,
           date: formatDate(date),
           // Leave times blank by default. Morning or afternoon can be entered independently.
-          morning_in: existing?.morning_in ?? null,
-          morning_out: existing?.morning_out ?? null,
-          afternoon_in: existing?.afternoon_in ?? null,
-          afternoon_out: existing?.afternoon_out ?? null,
+          morning_in: existing ? existing.morning_in : "08:00",
+          morning_out: existing ? existing.morning_out : "12:00",
+          afternoon_in: existing ? existing.afternoon_in : "13:00",
+          afternoon_out: existing ? existing.afternoon_out : "17:00",
           // Speakers are kept per date so they don't disappear on re-apply
           speakers: existing?.speakers?.length ? existing.speakers : [createSpeaker()],
         };
       });
 
+      applyDefaultFormTimes();   // ← idagdag
       showDateDialog.value = false;
     }
 
     function removeSchedule(index) {
       eventForm.value.schedules.splice(index, 1);
+      applyDefaultFormTimes();   // ← idagdag
     }
 
     // =========================================================
@@ -1607,6 +1741,28 @@ export default defineComponent({
         });
         return;
       }
+      for (const s of eventForm.value.schedules) {
+        const mIn = parseTimeToMinutes(s.morning_in);
+        const aIn = parseTimeToMinutes(s.afternoon_in);
+
+        if (mIn !== null && mIn >= 12 * 60) {
+          Notify.create({
+            type: "warning",
+            message: `Morning In on ${s.date} must be an AM time.`,
+            position: "top",
+          });
+          return;
+        }
+
+        if (aIn !== null && aIn < 12 * 60) {
+          Notify.create({
+            type: "warning",
+            message: `Afternoon In on ${s.date} must be a PM time.`,
+            position: "top",
+          });
+          return;
+        }
+      }
 
       // Build payload according to API expectations
       const payload = {
@@ -1621,16 +1777,18 @@ export default defineComponent({
         venue_name: eventForm.value.venue_name,
         mode_name: eventForm.value.mode_name,
         fee: eventForm.value.fee,
-
+        sync_to_arms: eventForm.value.sync_to_arms,
 
         employee: eventForm.value.employees,
+        sg_from: eventForm.value.sg_from || null,
+        sg_to: eventForm.value.sg_to || null,
 
         office: eventForm.value.departments.map((department) => ({
           office_name: department.name,
           number_of_attendees: department.attendees,
         })),
 
-      DateTime: eventForm.value.schedules.map((schedule) => ({
+        DateTime: eventForm.value.schedules.map((schedule) => ({
           schedule_date: schedule.rawDate,
           morning_in: formatTimeDisplay(schedule.morning_in),
           morning_out: formatTimeDisplay(schedule.morning_out),
@@ -1649,6 +1807,8 @@ export default defineComponent({
         ...buildCompetenciesPayload(eventForm.value.competencies), // ← spread, hindi nested key
         post_test_assessment: eventForm.value.post_test_assessment,
         pre_test_assessment: eventForm.value.pre_test_assessment,
+        form_open_date: formatFormDate(eventForm.value.form_open_date) || null,
+        form_due_date: formatFormDate(eventForm.value.form_due_date) || null,
       };
 
       eventStore.clearError();
@@ -1790,6 +1950,140 @@ export default defineComponent({
     // =========================================================
     let armsAutoEnabled = false; // para malaman kung system ang nag-on, hindi ang user
 
+
+
+    // AM only: 00:00 - 11:59
+    function amOnly(hr) {
+      return hr < 12;
+    }
+
+    // PM only: 12:00 - 23:59
+    function pmOnly(hr) {
+      return hr >= 12;
+    }
+
+    // =========================================================
+    // FORM OPEN / DUE DEFAULTS
+    // open = last schedule date 5:00 PM, due = last date + 3 days 11:59 PM
+    // =========================================================
+    const FORM_OPEN_HOUR = "17:00";
+    const FORM_DUE_HOUR = "23:59";
+    const FORM_DUE_DAYS_AFTER = 3;
+
+    // para malaman kung ang laman ng field ay galing sa system (hindi manual na binago ng user)
+    let lastAutoOpen = null;
+    let lastAutoDue = null;
+
+    function addDays(dateStr, days) {
+      const [y, m, d] = dateStr.split("-").map(Number);
+      const dt = new Date(y, m - 1, d + days);
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+    }
+
+    function applyDefaultFormTimes() {
+      const form = eventForm.value;
+      const dates = form.schedules.map((s) => s.rawDate).filter(Boolean).sort();
+
+      if (!dates.length) {
+        if (form.form_open_date === lastAutoOpen) form.form_open_date = null;
+        if (form.form_due_date === lastAutoDue) form.form_due_date = null;
+        lastAutoOpen = null;
+        lastAutoDue = null;
+        return;
+      }
+
+      const lastDate = dates[dates.length - 1];
+      const newOpen = `${lastDate} ${FORM_OPEN_HOUR}`;
+      const newDue = `${addDays(lastDate, FORM_DUE_DAYS_AFTER)} ${FORM_DUE_HOUR}`;
+
+      if (!form.form_open_date || form.form_open_date === lastAutoOpen) {
+        form.form_open_date = newOpen;
+        lastAutoOpen = newOpen;
+      }
+      if (!form.form_due_date || form.form_due_date === lastAutoDue) {
+        form.form_due_date = newDue;
+        lastAutoDue = newDue;
+      }
+    }
+
+    // =========================================================
+    // SALARY GRADE (modal)
+    // =========================================================
+    const showSgDialog = ref(false);
+    const sgDraft = ref({ from: null, to: null });
+    const sgError = ref("");
+
+    const sgLabel = computed(() => {
+      const { sg_from, sg_to } = eventForm.value;
+      if (!sg_from || !sg_to) return "";
+      return sg_from === sg_to ? `SG ${sg_from}` : `SG ${sg_from} - ${sg_to}`;
+    });
+
+    function openSgDialog() {
+      sgDraft.value = {
+        from: eventForm.value.sg_from,
+        to: eventForm.value.sg_to,
+      };
+      sgError.value = "";
+      showSgDialog.value = true;
+    }
+
+    function applySg() {
+      const from = sgDraft.value.from;
+      let to = sgDraft.value.to;
+      const hasFrom = from !== null && from !== "";
+      const hasTo = to !== null && to !== "";
+
+      // parehong walang laman = walang SG (optional)
+      if (!hasFrom && !hasTo) {
+        clearSg();
+        showSgDialog.value = false;
+        return;
+      }
+
+      // From lang ang required
+      if (!hasFrom) {
+        sgError.value = "Please fill in the From field.";
+        return;
+      }
+
+      // walang To = isang SG lang
+      if (!hasTo) to = from;
+
+      if (!Number.isInteger(from) || !Number.isInteger(to) || from < 1 || to > 33) {
+        sgError.value = "SG must be a whole number between 1 and 33.";
+        return;
+      }
+
+      if (from > to) {
+        sgError.value = "From must not be higher than To.";
+        return;
+      }
+
+      eventForm.value.sg_from = from;
+      eventForm.value.sg_to = to;
+      sgError.value = "";
+      showSgDialog.value = false;
+    }
+    function clearSg() {
+      eventForm.value.sg_from = null;
+      eventForm.value.sg_to = null;
+    }
+
+    function clearSgFromDialog() {
+      clearSg();
+      sgDraft.value = { from: null, to: null };
+      sgError.value = "";
+      showSgDialog.value = false;
+    }
+    // "2026-11-12 17:00" -> "2026-11-12 05:00 PM"  (Y-m-d h:i A)
+    function formatFormDate(value) {
+      if (!value) return "";
+      const [date, time] = value.split(" ");
+      const display = formatTimeDisplay(time);
+      return display ? `${date} ${display}` : "";
+    }
     watch(
       () => eventForm.value.source_name,
       (source) => {
@@ -1823,6 +2117,7 @@ export default defineComponent({
         }
       }
     );
+
 
     // =========================================================
     // RETURN
@@ -1863,7 +2158,6 @@ export default defineComponent({
       applyDates,
       removeSchedule,
       selectedDateRange,
-      formatTimeDisplay,
       getScheduleHours,
       showDepartmentDialog,
       openDepartmentDialog,
@@ -1939,7 +2233,22 @@ export default defineComponent({
       // forms
       formsOptions,
       evaluationOptions,
-      openGoogleForms
+      openGoogleForms,
+      // time restrict
+      amOnly,
+      pmOnly,
+
+      // salary grade
+      showSgDialog,
+      sgDraft,
+      sgError,
+      sgLabel,
+      openSgDialog,
+      applySg,
+      clearSg,
+      clearSgFromDialog,
+      formatTimeDisplay,
+      formatFormDate,
     };
   },
 });
@@ -2100,7 +2409,7 @@ export default defineComponent({
 .schedule-speakers {
   padding: 4px 12px 12px 12px;
   /* background: #fafafa; */
-  
+
 }
 
 .schedule-speakers-label {
@@ -3048,7 +3357,7 @@ export default defineComponent({
 
 .forms-list :deep(.q-checkbox__label) {
   color: #373737;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 /* Qualifications: full width + malaking textarea */
@@ -3128,6 +3437,23 @@ export default defineComponent({
   font-size: 12px;
 }
 
+.arms-card--off {
+  background: #fdecea;
+  border-color: #ef5350;
+}
+
+.arms-card--off .arms-card-title {
+  color: #c62828;
+}
+
+.arms-card--off .arms-card-desc {
+  color: #d32f2f;
+}
+
+.arms-card--off .arms-card-icon {
+  color: #ef5350;
+}
+
 .time-column-text {
   text-align: center;
   font-size: 12px;
@@ -3137,5 +3463,101 @@ export default defineComponent({
 .date-column-text {
   font-size: 12px;
   font-weight: 580;
+}
+
+.form-schedule {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+@media (max-width: 650px) {
+  .form-schedule {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.sg-row-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+}
+
+.sg-row-label {
+  color: #555555;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sg-row-empty {
+  color: #aaaaaa;
+  font-size: 12px;
+}
+
+.sg-chip {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sg-set-btn {
+  min-height: 30px;
+  padding: 0 14px;
+  border-color: #18bd4f;
+  border-radius: 8px;
+  color: #18bd4f;
+  font-size: 11px;
+}
+
+/* dialog */
+.sg-dialog {
+  width: 420px;
+  max-width: 92vw;
+  border-radius: 13px;
+}
+
+.sg-dialog-body {
+  padding: 18px;
+}
+
+.sg-range {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sg-input {
+  flex: 1;
+}
+
+.sg-separator {
+  color: #666666;
+  font-size: 12px;
+}
+
+.sg-error {
+  margin-top: 10px;
+  color: #d83d3d;
+  font-size: 12px;
+}
+
+.sg-hint {
+  margin-top: 10px;
+  color: #888888;
+  font-size: 11px;
 }
 </style>

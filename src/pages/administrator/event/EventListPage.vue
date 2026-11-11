@@ -30,6 +30,11 @@
           </template>
         </q-input>
 
+        <q-select v-model="filters.year" :options="yearOptions" emit-value map-options outlined dense label="Year"
+          class="filter-select" />
+
+        <q-select v-model="filters.month" :options="monthOptions" emit-value map-options outlined dense label="Month"
+          class="filter-select" />
 
         <div class="status-filters">
           <q-checkbox v-for="option in STATUS_OPTIONS" :key="option.value" v-model="selectedStatuses"
@@ -45,7 +50,8 @@
         <!-- <q-table flat :rows="filteredRows" :columns="columns" row-key="event_id"
           :rows-per-page-options="[0, 2, 10, 40, 100]" :loading="eventStore.loading" class="app-table"> -->
         <q-table flat :rows="tableRows" :columns="columns" row-key="event_id" v-model:pagination="pagination"
-          :rows-per-page-options="[50, 75, 90, 100]" :loading="eventStore.loading" @request="onRequest" class="app-table">
+          :rows-per-page-options="[50, 75, 90, 100]" :loading="eventStore.loading" @request="onRequest"
+          class="app-table">
           <!-- EVENT NAME -->
           <template #body-cell-event="props">
             <q-td :props="props">
@@ -85,9 +91,9 @@
                   <q-tooltip>Edit Event</q-tooltip>
                 </q-btn>
 
-                <!-- <q-btn flat round dense icon="delete" class="action-delete" @click="confirmDeleteEvent(props.row.raw)">
+                <q-btn flat round dense icon="delete" class="action-delete" @click="confirmDeleteEvent(props.row.raw)">
                   <q-tooltip>Delete Event</q-tooltip>
-                </q-btn> -->
+                </q-btn>
               </div>
             </q-td>
           </template>
@@ -193,6 +199,31 @@ export default defineComponent({
     const search = ref("");
     const pagination = ref({ page: 1, rowsPerPage: 50, rowsNumber: 0 });
 
+    const currentYear = new Date().getFullYear();
+
+    const filters = ref({
+      year: currentYear, // default: current year
+      month: null,       // default: All Months
+    });
+
+    // current year + 1 down to START_YEAR, plus "All Years"
+    const START_YEAR = 2026;
+
+    const yearOptions = [
+      { label: "All Years", value: null },
+      ...Array.from({ length: currentYear + 1 - START_YEAR + 1 }, (_, i) => {
+        const y = currentYear + 1 - i;
+        return { label: String(y), value: y };
+      }),
+    ];
+
+    const monthOptions = [
+      { label: "All Months", value: null },
+      ...[
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+      ].map((name, i) => ({ label: name, value: i + 1 })),
+    ];
 
     const STATUS_OPTIONS = [
       { label: "Up-coming", value: "up-coming" },
@@ -267,7 +298,7 @@ export default defineComponent({
     // ---------------------------------------------------------------
     function goToEvent(eventId) {
       return runView(eventId, async () => {
-            await new Promise((resolve) => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
         await router.push({
           name: "view events",
           query: { id: eventId },
@@ -304,7 +335,7 @@ export default defineComponent({
 
     function editEvent(event) {
       return runEdit(event.event_id, async () => {
-           await new Promise((resolve) => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
         isEditMode.value = true;
         editingEvent.value = event;
         form.value = {
@@ -412,6 +443,8 @@ export default defineComponent({
         per_page: rowsPerPage,
         search: search.value?.trim() || undefined,
         status: selectedStatuses.value.length ? selectedStatuses.value : undefined,
+        year: filters.value.year || undefined,
+        month: filters.value.month || undefined,
       });
       pagination.value = { ...pagination.value, ...eventStore.pagination };
     }
@@ -422,6 +455,7 @@ export default defineComponent({
     function clearFilters() {
       search.value = "";
       selectedStatuses.value = [];
+      filters.value = { year: currentYear, month: null };
       router.replace({ query: {} });
     }
 
@@ -440,12 +474,13 @@ export default defineComponent({
     applyQueryStatus(); // initialize URL filter before installing its watcher
 
     watch(selectedStatuses, () => fetchData(1), { deep: true });
-
+    watch(filters, () => fetchData(1), { deep: true });
     watch(() => route.query.status, applyQueryStatus);
 
     onMounted(() => {
       fetchData(1);
     });
+
 
     return {
       eventStore, search, STATUS_OPTIONS, selectedStatuses,
@@ -458,6 +493,7 @@ export default defineComponent({
 
       isEditLoading,
       isAnyEditLoading,
+      filters, yearOptions, monthOptions,
 
 
     };
@@ -789,6 +825,11 @@ export default defineComponent({
     width: 100%;
     flex-basis: 100%;
   }
+
+  .filter-select {
+    flex: 1 1 30%;
+    width: auto;
+  }
 }
 
 @media (max-width: 650px) {
@@ -832,5 +873,19 @@ export default defineComponent({
 .clear-btn {
   color: #6f8087;
   font-size: 10px;
+}
+
+.filter-select {
+  width: 150px;
+}
+
+.filter-select :deep(.q-field__control) {
+  min-height: 38px;
+  border-radius: 8px;
+}
+
+.filter-select :deep(.q-field__native),
+.filter-select :deep(.q-field__label) {
+  font-size: 11px;
 }
 </style>

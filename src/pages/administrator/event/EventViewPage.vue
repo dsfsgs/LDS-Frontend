@@ -38,41 +38,82 @@
 
           <!-- TITLE -->
           <LabeledField label="Title">
-            <q-input :model-value="event.title_name" outlined dense readonly placeholder="—" class="custom-input" />
+            <q-input :model-value="event.title_name" type="textarea" autogrow outlined dense readonly
+              placeholder="—" class="custom-input title-input" />
           </LabeledField>
 
-          <!-- L&D INTERVENTION -->
-          <!-- <div class="section-divider"></div>
-
-          <div class="section-title forms-title">L&amp;D Intervention</div>
-
-          <LabeledField label="Intervention">
-            <q-select :model-value="selectedIntervention" outlined dense readonly :options="interventionOptions"
-              placeholder="Select Intervention" class="custom-input" />
-          </LabeledField> -->
-
-          <!-- FORMS -->
-          <div class="section-divider"></div>
-
-          <div class="section-title forms-title">Forms</div>
-          <div class="competency-group">
-            <div class="forms-list">
-              <q-checkbox v-for="option in formsOptions" :key="option.value" :model-value="isFormSelected(option)"
-                :label="option.label" color="green" keep-color dense disable class="competency-checkbox" />
-            </div>
-          </div>
-
-          <div class="section-divider"></div>
-
-          <div class="section-title forms-title">Evaluation</div>
-          <div class="competency-group">
-            <div class="forms-list">
-              <q-checkbox v-for="option in evaluationOptions" :key="option.value" :model-value="isFormSelected(option)"
-                :label="option.label" color="green" keep-color dense disable class="competency-checkbox" />
-            </div>
-          </div>
           <template v-if="scheduleView === 'form'">
             <div class="section-divider"></div>
+
+            <!-- FORM SCHEDULE (open / due) -->
+            <div class="form-schedule">
+              <LabeledField label="Form Open Time">
+                <q-input :model-value="formatFormDate(formOpenDate)" outlined dense readonly
+                  placeholder="Select open date & time" class="custom-input">
+                  <template #append>
+                    <q-icon v-if="formOpenDate" name="close" class="time-picker-icon"
+                      @click.stop="formOpenDate = null" />
+                    <q-icon v-else name="event" class="time-picker-icon">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <div class="row no-wrap">
+                          <q-date v-model="formOpenDate" mask="YYYY-MM-DD HH:mm" color="green" />
+                          <q-time v-model="formOpenDate" mask="YYYY-MM-DD HH:mm" color="green" />
+                        </div>
+                        <div class="row items-center justify-end q-pa-sm">
+                          <q-btn v-close-popup label="Done" color="green" flat no-caps />
+                        </div>
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
+              </LabeledField>
+
+              <LabeledField label="Form Due Time">
+                <q-input :model-value="formatFormDate(formDueDate)" outlined dense readonly
+                  placeholder="Select due date & time" class="custom-input">
+                  <template #append>
+                    <q-icon v-if="formDueDate" name="close" class="time-picker-icon"
+                      @click.stop="formDueDate = null" />
+                    <q-icon v-else name="event" class="time-picker-icon">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <div class="row no-wrap">
+                          <q-date v-model="formDueDate" mask="YYYY-MM-DD HH:mm" color="green" />
+                          <q-time v-model="formDueDate" mask="YYYY-MM-DD HH:mm" color="green" />
+                        </div>
+                        <div class="row items-center justify-end q-pa-sm">
+                          <q-btn v-close-popup label="Done" color="green" flat no-caps />
+                        </div>
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
+              </LabeledField>
+            </div>
+
+            <!-- FORMS -->
+            <div class="section-title forms-title">Forms</div>
+            <div class="competency-group">
+              <div class="forms-list">
+                <q-checkbox v-for="option in formsOptions" :key="option.value" v-model="forms" :val="option.value"
+                  :label="option.label" color="green" keep-color dense class="competency-checkbox" />
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- EVALUATION -->
+            <div class="section-title forms-title">Evaluation</div>
+            <div class="competency-group">
+              <div class="forms-list">
+                <q-checkbox v-for="option in evaluationOptions" :key="option.value" v-model="evaluations"
+                  :val="option.value" :label="option.label" color="green" keep-color dense
+                  class="competency-checkbox" />
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- ARMS -->
             <div class="section-title forms-title">ARMS</div>
             <div class="arms-card" :class="{ 'arms-card--on': syncToArms }">
               <div class="arms-card-info">
@@ -93,8 +134,27 @@
                 Make sure the Venue, Schedule Date, and Department are complete.
               </span>
             </div>
+
             <div class="section-divider"></div>
+
+            <!-- ASSESSMENT -->
             <div class="section-title forms-title">Assessment</div>
+
+            <div class="arms-card assessment-toggle-card"
+              :class="isAssessmentOpen ? 'arms-card--on' : 'arms-card--off'">
+              <div class="arms-card-info">
+                <q-icon :name="isAssessmentOpen ? 'lock_open' : 'lock'"
+                  :color="isAssessmentOpen ? 'green-7' : 'red-7'" size="20px" class="arms-card-icon" />
+                <div>
+                  <div class="arms-card-desc">
+                    {{ isAssessmentOpen
+                      ? 'The assessment is open. Employees can now answer the Pre Test and Post Test.'
+                      : 'The assessment is closed. Turn this on to make it available to employees.' }}
+                  </div>
+                </div>
+              </div>
+              <q-toggle v-model="isAssessmentOpen" :color="isAssessmentOpen ? 'green' : 'red'" keep-color />
+            </div>
 
             <LabeledField label="Pre Test">
               <div class="assessment-link-row">
@@ -115,14 +175,9 @@
                   :href="postTestAssessment.trim()" target="_blank" rel="noopener noreferrer">
                   <q-tooltip>Open link</q-tooltip>
                 </q-btn>
-
               </div>
-
             </LabeledField>
-
           </template>
-
-
         </template>
 
         <!-- =====================================================
@@ -141,9 +196,6 @@
 
             <!-- Schedule Table using q-table -->
             <div class="schedule-table-container">
-              <!-- <q-table :rows="event.schedule || []" :columns="scheduleColumns" row-key="scheduleId"
-                :rows-per-page-options="[5, 10, 25]" v-model:pagination="pagination"
-                class="app-table schedule-table" flat bordered> -->
               <q-table :rows="scheduleRows" :columns="scheduleColumns" row-key="scheduleId"
                 v-model:pagination="pagination" :rows-per-page-options="[10, 25, 50]" :loading="eventStore.loading"
                 @request="onScheduleRequest" class="app-table schedule-table" flat bordered>
@@ -184,28 +236,18 @@
                       {{ props.row.computedStatus }}
                     </div>
                   </q-td>
-
-
                 </template>
 
                 <!-- Action Column -->
                 <template #body-cell-action="props">
                   <q-td :props="props">
                     <div class="schedule-actions">
-
                       <!-- view schedule-->
                       <q-btn flat round dense icon="visibility" color="green" class="action-btn"
                         :loading="isViewLoading(props.row.scheduleId)" :disable="isAnyViewLoading()"
                         @click.stop="viewSchedule(props.row)">
                         <q-tooltip>View</q-tooltip>
                       </q-btn>
-                      <!--                       
-              <q-btn flat dense round icon="visibility" color="primary"
-                :loading="isViewLoading(props.row.nominated_employee_id)" :disable="isAnyViewLoading()"
-                @click.stop="viewEmployeeInformation(props.row)">
-                <q-tooltip>View Details</q-tooltip>
-                
-              </q-btn> -->
 
                       <q-btn flat round dense icon="edit" color="orange" class="action-btn"
                         :loading="isEditLoading(props.row.scheduleId)" :disable="isAnyEditLoading()"
@@ -242,7 +284,9 @@
           ============================================= -->
           <ScheduleFormPanel v-else :event-id="eventId" :event-title="event.title_name" :schedule="editingScheduleData"
             v-model:sync-to-arms="syncToArms" v-model:pre-test-assessment="preTestAssessment"
-            v-model:post-test-assessment="postTestAssessment" @saved="onScheduleSaved" @cancel="backToScheduleList" />
+            v-model:post-test-assessment="postTestAssessment" v-model:form-open-date="formOpenDate"
+            v-model:form-due-date="formDueDate" :forms="forms" :evaluations="evaluations"
+            :is-assessment-open="isAssessmentOpen" @saved="onScheduleSaved" @cancel="backToScheduleList" />
         </template>
       </EventTwoColumnLayout>
     </template>
@@ -268,6 +312,7 @@ import Swal from "sweetalert2";
 
 import { coreOptions, technicalOptions, leadershipOptions } from "src/constants/competency";
 import { useRowLoading } from "src/composables/useRowLoading";
+import { formatFormDate, parseFormDate } from "src/composables/event/useFormDate";
 
 
 export default defineComponent({
@@ -309,15 +354,6 @@ export default defineComponent({
       return eventStore.selectedEvent;
     });
 
-    // =========================================================
-    // SCHEDULE TABLE (List View)
-    // =========================================================
-    // const pagination = ref({
-    //   sortBy: "schedule_date_range",
-    //   descending: false,
-    //   rowsPerPage: 5,
-    //   page: 1,
-    // });
     const { isLoading: isViewLoading, isAnyLoading: isAnyViewLoading, run: runView } = useRowLoading();
     const { isLoading: isEditLoading, isAnyLoading: isAnyEditLoading, run: runEdit } = useRowLoading();
     const { isLoading: isDeleteLoading, isAnyLoading: isAnyDeleteLoading, run: runDelete } = useRowLoading();
@@ -330,6 +366,13 @@ export default defineComponent({
     const preTestAssessment = ref("");
     const postTestAssessment = ref("");
     const selectedIntervention = ref("Formal Learning");
+
+    // form schedule / forms / assessment (shared with ScheduleFormPanel)
+    const isAssessmentOpen = ref(false);
+    const formOpenDate = ref(null);   // "YYYY-MM-DD HH:mm" (24h) internally
+    const formDueDate = ref(null);
+    const forms = ref([]);
+    const evaluations = ref([]);
 
 
     const scheduleColumns = [
@@ -400,21 +443,29 @@ export default defineComponent({
       editingScheduleData.value = null;
       eventStore.clearError();
       syncToArms.value = false;
-      preTestAssessment.value = "";   // bago
-      postTestAssessment.value = "";  // bago
+      preTestAssessment.value = "";
+      postTestAssessment.value = "";
+      isAssessmentOpen.value = false;
+      formOpenDate.value = null;
+      formDueDate.value = null;
+      forms.value = [];
+      evaluations.value = [];
       scheduleView.value = "form";
     }
 
-    // function editSchedule(item) {
-    //   editingScheduleData.value = item;
-    //   eventStore.clearError();
-    //   scheduleView.value = "form";
-    // }
     function mapCompetencyKeysToValues(sourceObj, optionsList) {
       if (!sourceObj) return [];
       return optionsList
         .filter((option) => sourceObj[option.backendKey] === true)
         .map((option) => option.value);
+    }
+
+    // Maps the API form list (with form_name) to the checkbox values
+    function mapFormValues(list, options) {
+      const names = (list || []).map((f) => f.form_name?.trim().toLowerCase());
+      return options
+        .filter((o) => names.includes(o.label.trim().toLowerCase()))
+        .map((o) => o.value);
     }
 
     // The API returns display values. The form needs ISO dates and 24-hour times.
@@ -459,6 +510,8 @@ export default defineComponent({
         qualifications: data.qualifications,
         fee: data.fee,
         learning_intervention: data.learning_intervention || null,
+        sg_from: data.sg_from ?? null,
+        sg_to: data.sg_to ?? null,
 
         departments: (data.office || []).map((o) => ({
           id: o.departmentId,
@@ -521,9 +574,21 @@ export default defineComponent({
         if (result?.success) {
           editingScheduleData.value = mapScheduleResponseToForm(result.data);
           syncToArms.value = !!result.data.sync_to_arms;
+
           const assessment = result.data.event_assessment?.[0];
           preTestAssessment.value = assessment?.pre_test_assessment ?? "";
           postTestAssessment.value = assessment?.post_test_assessment ?? "";
+          isAssessmentOpen.value = !!(
+            assessment?.is_assessment_open ?? result.data.is_assessment_open
+          );
+
+          formOpenDate.value = parseFormDate(result.data.form_open_date);
+          formDueDate.value = parseFormDate(result.data.form_due_date);
+
+          const formList = result.data.form ?? event.value?.form ?? [];
+          forms.value = mapFormValues(formList, formsOptions);
+          evaluations.value = mapFormValues(formList, evaluationOptions);
+
           scheduleView.value = "form";
         } else {
           Swal.fire({
@@ -612,18 +677,13 @@ export default defineComponent({
         });
       });
     }
+
     // =========================================================
     // L&D INTERVENTION / FORMS (left panel)
     // =========================================================
     const interventionOptions = [
       { label: "Formal Learning", value: "Formal Learning" },
-      // { label: "Learning by Doing", value: "Learning by Doing" },
-      // { label: "Social Learning", value: "Social Learning" },
-      // { label: "Self-Directed Learning", value: "Self-Directed Learning" },
     ];
-
-
-
 
     // =========================================================
     // GO BACK
@@ -640,7 +700,7 @@ export default defineComponent({
     }
 
     // =========================================================
-    // RETURN
+    // PAGINATION / LOAD
     // =========================================================
     const pagination = ref({
       page: 1,
@@ -686,8 +746,6 @@ export default defineComponent({
       }
     }
 
-
-
     return {
       eventStore,
       officeStore,
@@ -707,11 +765,11 @@ export default defineComponent({
       interventionOptions,
       selectedIntervention,
       formsOptions,
+      evaluationOptions,
+      isFormSelected,
       // Page nav
       viewSchedule,
       goBack,
-      evaluationOptions,
-      isFormSelected, // ← idagdag
       scheduleRows,
       onScheduleRequest,
       syncToArms,
@@ -719,6 +777,14 @@ export default defineComponent({
       preTestAssessment,
       postTestAssessment,
       isValidUrl,
+
+      // form schedule / forms / assessment
+      isAssessmentOpen,
+      formOpenDate,
+      formDueDate,
+      forms,
+      evaluations,
+      formatFormDate,
 
       isViewLoading,
       isAnyViewLoading,
@@ -728,7 +794,6 @@ export default defineComponent({
 
       isDeleteLoading,
       isAnyDeleteLoading,
-
     };
   },
 });
@@ -795,6 +860,21 @@ export default defineComponent({
   font-size: 12px;
 }
 
+/* Title: auto-grow textarea, wraps when long */
+.custom-input.title-input :deep(.q-field__control) {
+  height: auto;
+  min-height: 35px;
+}
+
+.custom-input.title-input :deep(.q-field__native) {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  line-height: 1.4;
+  resize: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .assessment-link-row {
   display: flex;
   align-items: center;
@@ -808,6 +888,21 @@ export default defineComponent({
 
 .assessment-link-row :deep(.q-btn) {
   flex-shrink: 0;
+}
+
+.time-picker-icon {
+  color: #18bd4f;
+  cursor: pointer;
+}
+
+/* =========================================================
+   FORM SCHEDULE (open / due)
+========================================================= */
+.form-schedule {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 /* =========================================================
@@ -834,7 +929,7 @@ export default defineComponent({
 
 .forms-list :deep(.q-checkbox__label) {
   color: #373737;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .empty-section {
@@ -981,6 +1076,10 @@ export default defineComponent({
     padding: 18px 12px 30px;
   }
 
+  .form-schedule {
+    grid-template-columns: 1fr;
+  }
+
   .schedule-header {
     flex-direction: column;
     align-items: stretch;
@@ -1019,7 +1118,7 @@ export default defineComponent({
 }
 
 /* =========================================================
-   ARMS INTEGRATION
+   ARMS / ASSESSMENT CARDS
 ========================================================= */
 .arms-card {
   display: flex;
@@ -1031,6 +1130,10 @@ export default defineComponent({
   border-radius: 10px;
   background: #fafafa;
   transition: background 0.2s, border-color 0.2s;
+}
+
+.assessment-toggle-card {
+  margin-bottom: 10px;
 }
 
 .arms-card--on {
@@ -1074,5 +1177,30 @@ export default defineComponent({
 .arms-hint-text {
   color: #666666;
   font-size: 12px;
+}
+
+.arms-card--off {
+  background: #fdecea;
+  border-color: #ef5350;
+}
+
+.arms-card--off .arms-card-title {
+  color: #c62828;
+}
+
+.arms-card--off .arms-card-desc {
+  color: #d32f2f;
+}
+
+.arms-card--off .arms-card-icon {
+  color: #ef5350;
+}
+
+.header-subtitle {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 </style>
