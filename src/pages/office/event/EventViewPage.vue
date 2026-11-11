@@ -686,7 +686,10 @@ export default defineComponent({
     async function openNominationDialog() {
       resetNominationDialog();
       showNominationDialog.value = true;
-      await employeeStore.fetchEmployeeListNomination(eventInfo.value.title_name);
+      await employeeStore.fetchEmployeeListNomination(eventInfo.value.title_name,
+        schedule.value.sg_from,
+        schedule.value.sg_to
+      );
     }
 
     function resetNominationDialog() {

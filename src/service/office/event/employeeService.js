@@ -2,9 +2,12 @@ import { api } from "src/boot/axios";
 
 
 // list of employee for nomination
-export const office_employee_list_nomation = (titleName) => {
+export const office_employee_list_nomation = (titleName,sgFrom,sgTo) => {
   return api.get(`office/employee/nomination-list`, {
-    params: { training_name: titleName },
+    params: { training_name: titleName,
+          sg_from: sgFrom,
+          sg_to: sgTo,
+     },
   });
 };
 

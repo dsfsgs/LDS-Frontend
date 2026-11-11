@@ -17,11 +17,11 @@ export const useEmployeeStore = defineStore("employee", {
   }),
 
   actions: {
-    async fetchEmployeeListNomination(titleName) {
+    async fetchEmployeeListNomination(titleName,sgFrom,sgTo) {
       this.loading = true;
       this.error = null;
       try {
-        const response = await office_employee_list_nomation(titleName);
+        const response = await office_employee_list_nomation(titleName,sgFrom,sgTo);
         this.employees = response.data.data || response.data || [];
       } catch (err) {
         this.error = err.response?.data?.message || "Failed to load employees.";
